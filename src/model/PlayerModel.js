@@ -5,9 +5,12 @@ export default class PlayerModel extends BaseModel {
   constructor(options) {
     super(options);
     this.height = 32;
+    this.yv = 10;
 
-    this.positionY = 0;
-    this.positionX = 0;
+    this.realY = 0;
+    this.realX = 0;
+    this.viewY = 0;
+    this.viewX = 0;
 
     this.jumping = false;
     this.moving = false;
@@ -16,18 +19,17 @@ export default class PlayerModel extends BaseModel {
   }
 
   draw(game) {
-    // draw character
     const radius = this.height / 2;
 
     game.ctx.beginPath();
 
     game.ctx.arc(
-      radius + this.positionX,                 // 円の中心座標(x)
-      s.GROUND_START_Y + this.positionY - radius - 0.5,   // 円の中心座標(y)
-      radius,                       // 半径
-      0 * Math.PI / 180,            // 開始角度: 0度 (0 * Math.PI / 180)
-      360 * Math.PI / 180,          // 終了角度: 360度 (360 * Math.PI / 180)
-      false                         // 方向: true=反時計回りの円、false=時計回りの円
+      radius + this.viewX,                            // 円の中心座標(x)
+      s.GROUND_START_Y + this.viewY - radius - 0.5,   // 円の中心座標(y)
+      radius,                                             // 半径
+      0 * Math.PI / 180,                                  // 開始角度: 0度 (0 * Math.PI / 180)
+      360 * Math.PI / 180,                                // 終了角度: 360度 (360 * Math.PI / 180)
+      false                                               // 方向: true=反時計回りの円、false=時計回りの円
     );
     game.ctx.fillStyle = "red";
     game.ctx.fill();
@@ -40,10 +42,29 @@ export default class PlayerModel extends BaseModel {
   update(game) {
     if (game.keyboard.find(key => key === "ArrowRight")) {
       this.moving = true;
-      this.positionX += 2;
+      this.realX += 2;
+
+      const stageMiddle = s.CANVAS_WIDTH / 2;
+      if (this.realX >= stageMiddle && this.realX <= s.STAGE_MAX_X - stageMiddle) {
+        this.viewX = s.CANVAS_WIDTH / 2;
+      } else if (this.realX >= s.STAGE_MAX_X) {
+        this.realX = s.STAGE_MAX_X;
+        this.viewX = s.CANVAS_WIDTH;
+      } else {
+        this.viewX += 2;
+      }
     } else if (game.keyboard.find(key => key === "ArrowLeft")) {
       this.moving = true;
-      this.positionX -= 2;
+      this.realX -= 2;
+
+      const stageMiddle = s.CANVAS_WIDTH / 2;
+      if (this.realX >= stageMiddle && this.realX <= s.STAGE_MAX_X - stageMiddle) {
+        this.viewX = s.CANVAS_WIDTH / 2;
+      } else if (this.realX <= 0) {
+        this.realX = this.viewX = 0;
+      } else {
+        this.viewX -= 2;
+      }
     } else {
       this.moving = false;
     }
@@ -53,18 +74,20 @@ export default class PlayerModel extends BaseModel {
       this.jumpingTimer = 0;
     }
 
-    this.jump();
+    this._jump();
   }
 
-  jump() {
+  _jump() {
     if (this.jumping) {
-      this.positionY = 0.5 * s.GRAVITY * this.jumpingTimer * this.jumpingTimer - s.yv * this.jumpingTimer;
+      this.realY = 0.5 * s.GRAVITY * this.jumpingTimer * this.jumpingTimer - this.yv * this.jumpingTimer;
       this.jumpingTimer++;
     }
 
-    if (this.positionY > 1) {
-      this.positionY = 0;
+    if (this.realY > 1) {
+      this.realY = 0;
       this.jumping = false;
     }
+
+    this.viewY = this.realY;
   }
 }

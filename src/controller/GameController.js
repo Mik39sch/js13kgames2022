@@ -3,6 +3,7 @@ import s from "../common/settings";
 export default class GameController {
   constructor() {
     this.drawItems = [];
+    this.player = undefined;
     this.timer = 0;
     this.keyboard = [];
     this.setKeyEvent();
@@ -16,6 +17,10 @@ export default class GameController {
 
     this.ctx = canvasEl.getContext('2d');
     appElement.appendChild(canvasEl);
+  }
+
+  setPlayer(player) {
+    this.player = player;
   }
 
   addDrawItems(item) {
@@ -43,6 +48,9 @@ export default class GameController {
       item.update(this);
       item.draw(this);
     });
+
+    this.player.update(this);
+    this.player.draw(this);
 
     this.timer = requestAnimationFrame(this._draw.bind(this));
   }
