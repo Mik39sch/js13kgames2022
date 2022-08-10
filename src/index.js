@@ -6,5 +6,5 @@ const game = new GameController();
 const player = new PlayerModel();
 const stage = new StageModel();
 game.setPlayer(player);
-game.addDrawItems(stage);
+game.addDrawItems("stage", stage);
 game.run();

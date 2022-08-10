@@ -14,8 +14,12 @@ export default class PlayerModel extends BaseModel {
 
     this.jumping = false;
     this.moving = false;
-
+    this.standingPos = 0;
+    this.jumpTop = undefined;
     this.jumpingTimer = 0;
+
+    this.downing = false;
+    this.downingTimer = 0;
   }
 
   draw(game) {
@@ -71,23 +75,63 @@ export default class PlayerModel extends BaseModel {
 
     if (game.keyboard.find(key => key === "ArrowUp") && !this.jumping) {
       this.jumping = true;
+      this.standingPos = this.realY;
+      this.jumpTop = undefined
       this.jumpingTimer = 0;
     }
 
-    this._jump();
+    if (this.jumping) {
+      this._jump(game);
+    } else {
+      const stage = game.drawItems.stage.getStandPlace(game).find(stage =>
+        this.realY >= stage.y - s.GROUND_START_Y
+      );
+      if (this.realY < 0 && !stage && !this.downing) {
+        this.downing = true;
+        this.standingPos = this.realY;
+        this.downingTimer = 0;
+      }
+
+      if (this.downing) {
+        this._down();
+      }
+    }
   }
 
-  _jump() {
-    if (this.jumping) {
-      this.realY = 0.5 * s.GRAVITY * this.jumpingTimer * this.jumpingTimer - this.yv * this.jumpingTimer;
-      this.jumpingTimer++;
-    }
+  _jump(game) {
+    const prevY = this.realY;
+    this.realY = this.standingPos + 0.5 * s.GRAVITY * this.jumpingTimer * this.jumpingTimer - this.yv * this.jumpingTimer;
+    this.jumpingTimer++;
 
     if (this.realY > 1) {
       this.realY = 0;
       this.jumping = false;
     }
 
+    const returnJump = prevY < this.realY;
+    if (returnJump && !this.jumpTop) {
+      this.jumpTop = prevY;
+    }
+    const stage = game.drawItems.stage.getStandPlace(game).find(stage =>
+      this.jumpTop <= stage.y - s.GROUND_START_Y &&
+      this.realY >= stage.y - s.GROUND_START_Y
+    );
+    if (returnJump && stage) {
+      this.realY = stage.y - stage.height + this.height / 2 - s.GROUND_START_Y + 5;
+      this.jumping = false;
+    }
+
+    this.viewY = this.realY;
+  }
+
+  _down() {
+    this.realY = 0.5 * s.GRAVITY * this.downingTimer * this.downingTimer + this.standingPos;
+    this.downingTimer++;
+
+    if (this.realY > 1) {
+      this.realY = 0;
+      this.downing = false;
+    }
     this.viewY = this.realY;
   }
 }
