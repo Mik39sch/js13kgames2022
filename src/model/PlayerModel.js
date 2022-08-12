@@ -83,11 +83,11 @@ export default class PlayerModel extends BaseModel {
     if (game.keyboard.find(key => key === "ArrowUp") && !this.jumping) {
       this.jumping = true;
       this.standingPos = this.realY;
-      this.jumpTop = undefined
+      this.jumpTop = undefined;
       this.jumpingTimer = 0;
     }
 
-    const standPlaces = game.drawItems.stage.getStandPlace(game);
+    const standPlaces = game.drawItems.stage.getStandPlace({ x: this.realX, height: this.height });
     const playerPosX = this.realX + this.height / 2;
     if (
       this.currentStage &&
@@ -162,6 +162,5 @@ export default class PlayerModel extends BaseModel {
       this.jumping = false;
       this.jumpTop = undefined;
     }
-
   }
 }

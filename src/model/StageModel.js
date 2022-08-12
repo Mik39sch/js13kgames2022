@@ -8,7 +8,6 @@ export default class StageModel extends BaseModel {
 
     this.stageHeight = 10;
     this.stages = [];
-    let prevX = 0;
 
     // this.stages = [
     //   {
@@ -43,7 +42,6 @@ export default class StageModel extends BaseModel {
 
         return { x, y, height: 20, width };
       }), ...this.stages];
-      prevX = idx * s.CANVAS_WIDTH;
       idx++;
     });
 
@@ -84,10 +82,10 @@ export default class StageModel extends BaseModel {
       });
   }
 
-  getStandPlace(game) {
-    const playerPosX = game.player.realX + game.player.height / 2;
+  getStandPlace(target) {
+    const targetPosX = target.x + target.height / 2;
     return this.stages
-      .filter(stage => stage.x <= playerPosX && stage.x + stage.width >= playerPosX)
+      .filter(stage => stage.x <= targetPosX && stage.x + stage.width >= targetPosX)
       .sort((a, b) => {
         if (a.y < b.y) {
           return -1;

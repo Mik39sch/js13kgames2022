@@ -37,7 +37,6 @@ export default class GameController {
   }
 
   _draw() {
-    // draw stage
     this.ctx.fillStyle = 'skyblue';
     this.ctx.fillRect(0, 0, s.CANVAS_WIDTH, s.CANVAS_HEIGHT);
 
