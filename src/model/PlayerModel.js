@@ -6,6 +6,8 @@ export default class PlayerModel extends BaseModel {
     super(options);
     this.height = 32;
     this.yv = 10;
+    this.xv = 0;
+    this.maxXV = 5;
 
     this.realY = 0;
     this.realX = 0;
@@ -48,7 +50,7 @@ export default class PlayerModel extends BaseModel {
   update(game) {
     if (game.keyboard.find(key => key === "ArrowRight")) {
       this.moving = true;
-      this.realX += 2;
+      this.realX += 2 + this.xv;
 
       const stageMiddle = s.CANVAS_WIDTH / 2;
       if (this.realX >= stageMiddle && this.realX <= s.STAGE_MAX_X - stageMiddle) {
@@ -57,11 +59,11 @@ export default class PlayerModel extends BaseModel {
         this.realX = s.STAGE_MAX_X;
         this.viewX = s.CANVAS_WIDTH;
       } else {
-        this.viewX += 2;
+        this.viewX += 2 + this.xv;
       }
     } else if (game.keyboard.find(key => key === "ArrowLeft")) {
       this.moving = true;
-      this.realX -= 2;
+      this.realX -= 2 + this.xv;
 
       const stageMiddle = s.CANVAS_WIDTH / 2;
       if (this.realX >= stageMiddle && this.realX <= s.STAGE_MAX_X - stageMiddle) {
@@ -69,13 +71,16 @@ export default class PlayerModel extends BaseModel {
       } else if (this.realX <= 0) {
         this.realX = this.viewX = 0;
       } else {
-        this.viewX -= 2;
+        this.viewX -= 2 + this.xv;
       }
     } else {
       this.moving = false;
+      this.xv = 0;
     }
 
-    if (game.keyboard.find(key => key === "ArrowUp") && !this.jumping && !this.downing) {
+    if (this.moving && this.xv <= this.maxXV) this.xv += 0.01;
+
+    if (game.keyboard.find(key => key === "ArrowUp") && !this.jumping) {
       this.jumping = true;
       this.standingPos = this.realY;
       this.jumpTop = undefined
@@ -94,13 +99,8 @@ export default class PlayerModel extends BaseModel {
       this.downingTimer = 0;
     }
 
-    if (this.jumping) {
-      this._jump(standPlaces);
-    }
-
-    if (this.downing) {
-      this._down(standPlaces);
-    }
+    if (this.jumping) this._jump(standPlaces);
+    if (this.downing) this._down(standPlaces);
   }
 
   _jump(standPlaces) {

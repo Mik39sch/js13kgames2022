@@ -1,13 +1,12 @@
 import BaseModel from "./BaseModel"
 import s from "../common/settings";
+import { randomInt } from "../common/util";
 
 export default class StageModel extends BaseModel {
   constructor(options) {
     super(options);
 
     this.stageHeight = 10;
-
-    let idx = 0;
     this.stages = [];
     let prevX = 0;
 
@@ -32,18 +31,17 @@ export default class StageModel extends BaseModel {
     //   }
     // ];
 
-    [...Array(10)].forEach(() => {
-      this.stages = [...[...Array(10)].map(() => {
-        const maxX = s.CANVAS_WIDTH + idx * s.CANVAS_WIDTH;
-        const minX = idx * s.CANVAS_WIDTH;
-        const x = Math.floor(Math.random() * maxX) + minX;
-        prevX = x;
+    [...Array(s.STAGE_MAX_X / s.CANVAS_WIDTH)].forEach((el, idx) => {
+      const stageLength = randomInt({ max: 10, min: 3 });
+      this.stages = [...[...Array(stageLength)].map(() => {
+        const x = randomInt({
+          max: s.CANVAS_WIDTH + idx * s.CANVAS_WIDTH,
+          min: idx * s.CANVAS_WIDTH
+        });
+        const y = randomInt({ max: s.GROUND_START_Y - 50, min: 1 });
+        const width = randomInt({ max: 300, min: 100 });
 
-        const maxY = s.GROUND_START_Y - 50;
-        const minY = 1;
-        const y = Math.floor(Math.random() * maxY) + minY;
-
-        return { x, y, height: 20, width: 100 };
+        return { x, y, height: 20, width };
       }), ...this.stages];
       prevX = idx * s.CANVAS_WIDTH;
       idx++;
