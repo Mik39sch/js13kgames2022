@@ -5,38 +5,26 @@ import EnemyModel from "./model/EnemyModel";
 import PlayerModel from "./model/PlayerModel";
 import StageModel from "./model/StageModel";
 
-const game = new GameController();
 
 const player = new PlayerModel();
-game.setPlayer(player);
 
-const stage = new StageModel();
-game.addDrawItems("stage", stage);
+let stages = [];
+for (let idx = 0; idx < s.STAGE_MAX_X / s.CANVAS_WIDTH; idx++) {
+  const stageLength = randomInt({ max: 10, min: 3 });
+  stages = stages.concat([...Array(stageLength)].map(() => new StageModel({ widthIndex: idx })));
+}
 
+let enemies = [];
 for (let idx = 0; idx < s.STAGE_MAX_X / s.CANVAS_WIDTH; idx++) {
   const enemyLength = randomInt({ max: 3, min: 1 });
-  for (let eIdx = 0; eIdx < enemyLength; eIdx++) {
+  enemies = enemies.concat([...Array(enemyLength)].map(() => {
     const x = randomInt({
       max: s.CANVAS_WIDTH + idx * s.CANVAS_WIDTH,
       min: idx * s.CANVAS_WIDTH
     });
-    const enemy = new EnemyModel({ startPosition: x });
-    game.addDrawItems(`enemy${idx}_${eIdx}`, enemy);
-    console.log(x);
-  }
+    return new EnemyModel({ startPosition: x });
+  }));
 }
 
-// [...Array(s.STAGE_MAX_X / s.CANVAS_WIDTH)].forEach((el, idx) => {
-//   const enemyLength = randomInt({ max: 3, min: 1 });
-//   [...Array(enemyLength)].forEach(() => {
-//     const x = randomInt({
-//       max: s.CANVAS_WIDTH + idx * s.CANVAS_WIDTH,
-//       min: idx * s.CANVAS_WIDTH
-//     });
-//     const enemy = new EnemyModel(x);
-//     game.addDrawItems("enemy", enemy);
-//   });
-//   idx++;
-// });
-
+const game = new GameController({ player, stages, enemies });
 game.run();

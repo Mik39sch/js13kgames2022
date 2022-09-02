@@ -87,7 +87,7 @@ export default class PlayerModel extends BaseModel {
       this.jumpingTimer = 0;
     }
 
-    const standPlaces = game.drawItems.stage.getStandPlace({ x: this.realX, height: this.height });
+    const standPlaces = game.getViewStages({ x: this.realX, height: this.height });
     const playerPosX = this.realX + this.height / 2;
     if (
       this.currentStage &&

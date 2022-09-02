@@ -16,8 +16,6 @@ export default class EnemyModel extends BaseModel {
     this.x = 0;
     this.yv = 10;
     this.startPosition = options.startPosition;
-    this.realX = 0;
-    this.viewX = 0;
     this.turn = false;
 
     this.y = 0;
@@ -84,7 +82,7 @@ export default class EnemyModel extends BaseModel {
       this.jumpingTimer = 0;
     }
 
-    const standPlaces = game.drawItems.stage.getStandPlace({ x: this.x + this.startPosition, height: this.height });
+    const standPlaces = game.getViewStages({ x: this.x + this.startPosition, height: this.height });
     if (this.jumping) this._jump(standPlaces);
   }
 

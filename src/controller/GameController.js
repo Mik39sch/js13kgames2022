@@ -1,9 +1,11 @@
 import s from "../common/settings";
 
 export default class GameController {
-  constructor() {
-    this.drawItems = {};
-    this.player = undefined;
+  constructor({ player, stages, enemies }) {
+    this.player = player;
+    this.stages = stages;
+    console.log(this.stages)
+    this.enemies = enemies;
     this.timer = 0;
     this.keyboard = [];
     this.setKeyEvent();
@@ -23,10 +25,6 @@ export default class GameController {
     this.player = player;
   }
 
-  addDrawItems(key, item) {
-    this.drawItems[key] = item;
-  }
-
   setKeyEvent() {
     document.addEventListener("keydown", e => {
       this.keyboard = [...new Set([...this.keyboard, e.code])];
@@ -37,21 +35,56 @@ export default class GameController {
   }
 
   _draw() {
-    this.ctx.fillStyle = 'skyblue';
+    this.ctx.fillStyle = 'maroon';
     this.ctx.fillRect(0, 0, s.CANVAS_WIDTH, s.CANVAS_HEIGHT);
 
-    this.ctx.fillStyle = 'green';
+    this.ctx.fillStyle = 'darkslategray';
     this.ctx.fillRect(0, s.GROUND_START_Y, s.CANVAS_WIDTH, s.GROUND_HEIGHT);
 
-    Object.values(this.drawItems).forEach(item => {
-      item.update(this);
-      item.draw(this);
-    });
+    const playerPosX = this.player.realX;
+    let viewMinX = 0;
+    let viewMaxX = s.CANVAS_WIDTH;
+    if (playerPosX >= s.STAGE_MAX_X - s.CANVAS_WIDTH / 2) {
+      viewMinX = s.STAGE_MAX_X - s.CANVAS_WIDTH;
+      viewMaxX = s.STAGE_MAX_X;
+    } else if (playerPosX >= s.CANVAS_WIDTH / 2) {
+      viewMinX = playerPosX - s.CANVAS_WIDTH / 2;
+      viewMaxX = playerPosX + s.CANVAS_WIDTH / 2;
+    }
+
+    this.stages
+      .filter(stage => stage.x + stage.width >= viewMinX && stage.x <= viewMaxX)
+      .forEach(stage => {
+        stage.update(this);
+        stage.draw(this);
+      });
+
+    this.enemies
+      .filter(enemy =>
+        enemy.x + enemy.startPosition + enemy.height > viewMinX &&
+        enemy.x + enemy.startPosition - enemy.height < viewMaxX
+      )
+      .forEach(enemy => {
+        enemy.update(this);
+        enemy.draw(this);
+      });
 
     this.player.update(this);
     this.player.draw(this);
 
     this.timer = requestAnimationFrame(this._draw.bind(this));
+  }
+
+  getViewStages(target) {
+    const targetPosX = target.x + target.height / 2;
+    return this.stages
+      .filter(stage => stage.x <= targetPosX && stage.x + stage.width >= targetPosX)
+      .sort((a, b) => {
+        if (a.y < b.y) {
+          return -1;
+        }
+        return 1;
+      });
   }
 
   run() {
