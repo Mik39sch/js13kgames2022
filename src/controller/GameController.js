@@ -4,7 +4,6 @@ export default class GameController {
   constructor({ player, stages, enemies }) {
     this.player = player;
     this.stages = stages;
-    console.log(this.stages)
     this.enemies = enemies;
     this.timer = 0;
     this.keyboard = [];

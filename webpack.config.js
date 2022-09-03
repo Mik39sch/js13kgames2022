@@ -13,15 +13,15 @@ module.exports = {
     optimization: {
         minimize: true,
         minimizer: [new TerserPlugin({
-        terserOptions: {
-            ecma: 6,
-            compress: true,
-            output: {
-                comments: false,
-                beautify: false
+            terserOptions: {
+                ecma: 6,
+                compress: true,
+                output: {
+                    comments: false,
+                    beautify: false
+                }
             }
-        }
-      })]
+        })]
     },
     plugins: [
         new HtmlWebpackPlugin({
@@ -37,7 +37,6 @@ module.exports = {
                     to: __dirname + "/dist/assets"
                 }
             ],
-            // { copyUnmodified: true }
         }),
         new WriteFilePlugin()
     ],

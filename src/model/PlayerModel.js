@@ -4,7 +4,7 @@ import s from "../common/settings";
 export default class PlayerModel extends BaseModel {
   constructor(options) {
     super(options);
-    this.height = 32;
+    this.height = this.width = 32;
     this.yv = 10;
     this.xv = 0;
     this.maxXV = 5;
@@ -14,8 +14,11 @@ export default class PlayerModel extends BaseModel {
     this.viewY = 0;
     this.viewX = 0;
 
-    this.jumping = false;
     this.moving = false;
+    this.movingTImer = 0;
+    this.movingImageIdx = 0;
+
+    this.jumping = false;
     this.standingPos = 0;
     this.jumpTop = undefined;
     this.jumpingTimer = 0;
@@ -24,33 +27,39 @@ export default class PlayerModel extends BaseModel {
 
     this.downing = false;
     this.downingTimer = 0;
+
+    this.stopImage = options.stopImage;
+    this.moveImages = options.moveImages;
   }
 
   draw(game) {
-    const radius = this.height / 2;
-
-    game.ctx.beginPath();
-
-    game.ctx.arc(
-      radius + this.viewX,                            // 円の中心座標(x)
-      s.GROUND_START_Y + this.viewY - radius - 0.5,   // 円の中心座標(y)
-      radius,                                             // 半径
-      0 * Math.PI / 180,                                  // 開始角度: 0度 (0 * Math.PI / 180)
-      360 * Math.PI / 180,                                // 終了角度: 360度 (360 * Math.PI / 180)
-      false                                               // 方向: true=反時計回りの円、false=時計回りの円
+    let img = this.stopImage;
+    if (this.moving) {
+      if (this.movingTImer % 5 === 0) {
+        this.movingImageIdx++;
+        if (this.movingImageIdx >= this.moveImages.length) {
+          this.movingImageIdx = 0;
+        }
+      }
+      img = this.moveImages[this.movingImageIdx];
+    }
+    if (this.jumping || this.downing) {
+      img = this.moveImages[0];
+    }
+    game.ctx.drawImage(
+      img,
+      this.viewX,
+      s.GROUND_START_Y + this.viewY - this.height,
+      this.width,
+      this.height
     );
-    game.ctx.fillStyle = "red";
-    game.ctx.fill();
-
-    game.ctx.strokeStyle = "crimson";
-    game.ctx.lineWidth = 1;
-    game.ctx.stroke();
   }
 
   update(game) {
     if (game.keyboard.find(key => key === "ArrowRight")) {
       this.moving = true;
       this.realX += 2 + this.xv;
+      this.movingTImer++;
 
       const stageMiddle = s.CANVAS_WIDTH / 2;
       if (this.realX >= stageMiddle && this.realX <= s.STAGE_MAX_X - stageMiddle) {
@@ -63,6 +72,7 @@ export default class PlayerModel extends BaseModel {
       }
     } else if (game.keyboard.find(key => key === "ArrowLeft")) {
       this.moving = true;
+      this.movingTImer++;
       this.realX -= 2 + this.xv;
 
       const stageMiddle = s.CANVAS_WIDTH / 2;
@@ -76,6 +86,7 @@ export default class PlayerModel extends BaseModel {
     } else {
       this.moving = false;
       this.xv = 0;
+      this.movingTImer = 0;
     }
 
     if (this.moving && this.xv <= this.maxXV) this.xv += 0.01;
