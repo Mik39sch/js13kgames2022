@@ -36,7 +36,7 @@ export default class EnemyModel extends BaseModel {
     this.timer = 0;
   }
 
-  draw(game) {
+  draw(game, ctx) {
     let adjustX = 0;
     const stageMiddle = s.CANVAS_WIDTH / 2;
     if (game.player.realX <= stageMiddle) {
@@ -60,12 +60,10 @@ export default class EnemyModel extends BaseModel {
     if (this.jumping || this.downing) {
       img = moveImgs[0];
     }
-    game.ctx.drawImage(
+    ctx.drawImage(
       img,
       this.x + this.startPosition - adjustX,
-      s.GROUND_START_Y + this.y - this.height,
-      this.width,
-      this.height
+      s.GROUND_START_Y + this.y - this.height
     );
   }
 

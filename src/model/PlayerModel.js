@@ -33,7 +33,7 @@ export default class PlayerModel extends BaseModel {
     this.moveImages = options.moveImages;
   }
 
-  draw(game) {
+  draw(game, ctx) {
     const imgKey = this.turn ? "trans" : "normal";
     const moveImgs = this.moveImages[imgKey];
     let img = this.stopImage[imgKey];
@@ -51,12 +51,10 @@ export default class PlayerModel extends BaseModel {
       img = moveImgs[0];
     }
 
-    game.ctx.drawImage(
+    ctx.drawImage(
       img,
       this.viewX,
-      s.GROUND_START_Y + this.viewY - this.height,
-      this.width,
-      this.height
+      s.GROUND_START_Y + this.viewY - this.height
     );
   }
 

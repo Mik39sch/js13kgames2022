@@ -10,10 +10,11 @@ export default class GameController {
     this.setKeyEvent();
 
     const appElement = document.querySelector(s.APP_ELEMENT);
-    const canvasEl = document.createElement("canvas");
     const [w, h] = [s.CANVAS_WIDTH, s.CANVAS_HEIGHT];
-
     [appElement.style.width, appElement.style.height] = [`${w}px`, `${h}px`];
+
+    const canvasEl = document.createElement("canvas");
+    [canvasEl.style.width, canvasEl.style.height] = [`${w}px`, `${h}px`];
     [canvasEl.width, canvasEl.height] = [w, h];
 
     this.ctx = canvasEl.getContext('2d');
@@ -34,6 +35,8 @@ export default class GameController {
   }
 
   _draw() {
+    this.ctx.save();
+
     this.ctx.fillStyle = 'maroon';
     this.ctx.fillRect(0, 0, s.CANVAS_WIDTH, s.CANVAS_HEIGHT);
 
@@ -51,25 +54,30 @@ export default class GameController {
       viewMaxX = playerPosX + s.CANVAS_WIDTH / 2;
     }
 
-    this.stages
-      .filter(stage => stage.x + stage.width >= viewMinX && stage.x <= viewMaxX)
-      .forEach(stage => {
-        stage.update(this);
-        stage.draw(this);
-      });
 
-    this.enemies
+    const stg = this.stages
+      .filter(stage => stage.x + stage.width >= viewMinX && stage.x <= viewMaxX);
+
+    stg.forEach(stage => {
+      stage.update(this);
+      stage.draw(this, this.ctx);
+    });
+
+    const enm = this.enemies
       .filter(enemy =>
         enemy.x + enemy.startPosition + enemy.height > viewMinX &&
         enemy.x + enemy.startPosition - enemy.height < viewMaxX
-      )
-      .forEach(enemy => {
-        enemy.update(this);
-        enemy.draw(this);
-      });
+      );
+
+    enm.forEach(enemy => {
+      enemy.update(this);
+      enemy.draw(this, this.ctx);
+    });
 
     this.player.update(this);
-    this.player.draw(this);
+    this.player.draw(this, this.ctx);
+
+    this.ctx.restore();
 
     this.timer = requestAnimationFrame(this._draw.bind(this));
   }

@@ -16,9 +16,9 @@ export default class StageModel extends BaseModel {
     this.y = randomInt({ max: s.GROUND_START_Y - 50, min: 1 });
   }
 
-  draw(game) {
-    game.ctx.strokeStyle = "gray";
-    game.ctx.fillStyle = "#505050";
+  draw(game, ctx) {
+    ctx.strokeStyle = "gray";
+    ctx.fillStyle = "#505050";
 
     let adjustX = 0;
     const stageMiddle = s.CANVAS_WIDTH / 2;
@@ -29,7 +29,7 @@ export default class StageModel extends BaseModel {
     } else if (game.player.realX >= s.STAGE_MAX_X - stageMiddle) {
       adjustX = s.STAGE_MAX_X - s.CANVAS_WIDTH;
     }
-    game.ctx.strokeRect(this.x - adjustX, this.y, this.width, this.height);
-    game.ctx.fillRect(this.x - adjustX, this.y, this.width, this.height);
+    ctx.strokeRect(this.x - adjustX, this.y, this.width, this.height);
+    ctx.fillRect(this.x - adjustX, this.y, this.width, this.height);
   }
 }
