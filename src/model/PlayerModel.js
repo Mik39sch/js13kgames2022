@@ -17,6 +17,7 @@ export default class PlayerModel extends BaseModel {
     this.moving = false;
     this.movingTImer = 0;
     this.movingImageIdx = 0;
+    this.turn = false;
 
     this.jumping = false;
     this.standingPos = 0;
@@ -33,19 +34,23 @@ export default class PlayerModel extends BaseModel {
   }
 
   draw(game) {
-    let img = this.stopImage;
+    const imgKey = this.turn ? "trans" : "normal";
+    const moveImgs = this.moveImages[imgKey];
+    let img = this.stopImage[imgKey];
+
     if (this.moving) {
       if (this.movingTImer % 5 === 0) {
         this.movingImageIdx++;
-        if (this.movingImageIdx >= this.moveImages.length) {
+        if (this.movingImageIdx >= moveImgs.length) {
           this.movingImageIdx = 0;
         }
       }
-      img = this.moveImages[this.movingImageIdx];
+      img = moveImgs[this.movingImageIdx];
     }
     if (this.jumping || this.downing) {
-      img = this.moveImages[0];
+      img = moveImgs[0];
     }
+
     game.ctx.drawImage(
       img,
       this.viewX,
@@ -58,6 +63,7 @@ export default class PlayerModel extends BaseModel {
   update(game) {
     if (game.keyboard.find(key => key === "ArrowRight")) {
       this.moving = true;
+      this.turn = false;
       this.realX += 2 + this.xv;
       this.movingTImer++;
 
@@ -72,6 +78,7 @@ export default class PlayerModel extends BaseModel {
       }
     } else if (game.keyboard.find(key => key === "ArrowLeft")) {
       this.moving = true;
+      this.turn = true;
       this.movingTImer++;
       this.realX -= 2 + this.xv;
 

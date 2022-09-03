@@ -5,7 +5,6 @@ const GROUND_START_Y = CANVAS_HEIGHT - GROUND_HEIGHT;
 const STAGE_MAX_X = CANVAS_WIDTH + 10 * CANVAS_WIDTH;
 
 export default {
-    debug: false,
     APP_ELEMENT: "#app",
     CANVAS_WIDTH,
     CANVAS_HEIGHT,

@@ -5,13 +5,20 @@ import EnemyModel from "./model/EnemyModel";
 import PlayerModel from "./model/PlayerModel";
 import StageModel from "./model/StageModel";
 
-const playerStopImage = new Image();
-const playerMoveImage1 = new Image();
-const playerMoveImage2 = new Image();
-setLoadAllCallback([playerStopImage, playerMoveImage1, playerMoveImage2], function () {
+const playerStopImages = [new Image(), new Image()];
+const playerMoveImages = [new Image(), new Image()];
+const enemyStopImages = [new Image(), new Image()];
+const enemyMoveImages = [new Image(), new Image()];
+
+setLoadAllCallback([
+  playerStopImages[0], playerStopImages[1],
+  playerMoveImages[0], playerMoveImages[1],
+  enemyStopImages[0], enemyStopImages[1],
+  enemyMoveImages[0], enemyMoveImages[1]
+], function () {
   const player = new PlayerModel({
-    stopImage: playerStopImage,
-    moveImages: [playerMoveImage1, playerMoveImage2]
+    stopImage: { normal: playerStopImages[0], trans: playerStopImages[1] },
+    moveImages: { normal: [playerStopImages[0], playerMoveImages[0]], trans: [playerStopImages[1], playerMoveImages[1]] }
   });
   let stages = [];
   for (let idx = 0; idx < s.STAGE_MAX_X / s.CANVAS_WIDTH; idx++) {
@@ -27,7 +34,10 @@ setLoadAllCallback([playerStopImage, playerMoveImage1, playerMoveImage2], functi
         max: s.CANVAS_WIDTH + idx * s.CANVAS_WIDTH,
         min: idx * s.CANVAS_WIDTH
       });
-      return new EnemyModel({ startPosition: x });
+      return new EnemyModel({
+        startPosition: x,
+        moveImages: { normal: [enemyStopImages[0], enemyMoveImages[0]], trans: [enemyStopImages[1], enemyMoveImages[1]] }
+      });
     }));
   }
 
@@ -35,7 +45,12 @@ setLoadAllCallback([playerStopImage, playerMoveImage1, playerMoveImage2], functi
   game.run();
 });
 
-playerStopImage.src = "./assets/images/player_stop.png";
-playerMoveImage1.src = "./assets/images/player_move1.png";
-playerMoveImage2.src = "./assets/images/player_move2.png";
+playerStopImages[0].src = "./assets/images/player_stop.png";
+playerStopImages[1].src = "./assets/images/player_stop_trans.png";
+playerMoveImages[0].src = "./assets/images/player_move.png";
+playerMoveImages[1].src = "./assets/images/player_move_trans.png";
 
+enemyStopImages[0].src = "./assets/images/enemy_stop.png";
+enemyStopImages[1].src = "./assets/images/enemy_stop_trans.png";
+enemyMoveImages[0].src = "./assets/images/enemy_move.png";
+enemyMoveImages[1].src = "./assets/images/enemy_move_trans.png";

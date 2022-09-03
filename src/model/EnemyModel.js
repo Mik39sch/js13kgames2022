@@ -19,7 +19,7 @@ export default class EnemyModel extends BaseModel {
     this.turn = false;
 
     this.y = 0;
-    this.height = 32;
+    this.height = this.width = 32;
 
     this.jumping = false;
     this.standingPos = 0;
@@ -30,11 +30,13 @@ export default class EnemyModel extends BaseModel {
 
     this.downing = false;
     this.downingTimer = 0;
+
+    this.moveImages = options.moveImages;
+    this.imageIndex = 0;
+    this.timer = 0;
   }
 
   draw(game) {
-    const radius = this.height / 2;
-
     let adjustX = 0;
     const stageMiddle = s.CANVAS_WIDTH / 2;
     if (game.player.realX <= stageMiddle) {
@@ -44,22 +46,27 @@ export default class EnemyModel extends BaseModel {
     } else if (game.player.realX >= s.STAGE_MAX_X - stageMiddle) {
       adjustX = s.STAGE_MAX_X - s.CANVAS_WIDTH;
     }
-    game.ctx.beginPath();
 
-    game.ctx.arc(
-      radius + this.x + this.startPosition - adjustX,                            // 円の中心座標(x)
-      s.GROUND_START_Y + this.y - radius - 0.5,   // 円の中心座標(y)
-      radius,                                             // 半径
-      0 * Math.PI / 180,                                  // 開始角度: 0度 (0 * Math.PI / 180)
-      360 * Math.PI / 180,                                // 終了角度: 360度 (360 * Math.PI / 180)
-      false                                               // 方向: true=反時計回りの円、false=時計回りの円
+    const imgKey = this.turn ? "trans" : "normal";
+    const moveImgs = this.moveImages[imgKey];
+    let img = moveImgs[0];
+    if (this.timer % 5 === 0) {
+      this.imageIndex++;
+      if (this.imageIndex >= moveImgs.length) {
+        this.imageIndex = 0;
+      }
+    }
+    img = moveImgs[this.imageIndex];
+    if (this.jumping || this.downing) {
+      img = moveImgs[0];
+    }
+    game.ctx.drawImage(
+      img,
+      this.x + this.startPosition - adjustX,
+      s.GROUND_START_Y + this.y - this.height,
+      this.width,
+      this.height
     );
-    game.ctx.fillStyle = "blue";
-    game.ctx.fill();
-
-    game.ctx.strokeStyle = "crimson";
-    game.ctx.lineWidth = 1;
-    game.ctx.stroke();
   }
 
   update(game) {
@@ -84,6 +91,7 @@ export default class EnemyModel extends BaseModel {
 
     const standPlaces = game.getViewStages({ x: this.x + this.startPosition, height: this.height });
     if (this.jumping) this._jump(standPlaces);
+    this.timer++;
   }
 
   _jump(standPlaces) {
