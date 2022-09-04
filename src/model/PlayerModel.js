@@ -5,9 +5,17 @@ export default class PlayerModel extends BaseModel {
   constructor(options) {
     super(options);
     this.height = this.width = 32;
-    this.yv = 10;
-    this.xv = 0;
     this.maxXV = 5;
+    this.yv = 10;
+
+    this.initialize();
+
+    this.stopImage = options.stopImage;
+    this.moveImages = options.moveImages;
+  }
+
+  initialize() {
+    this.xv = 0;
 
     this.realY = 0;
     this.realX = 0;
@@ -28,9 +36,6 @@ export default class PlayerModel extends BaseModel {
 
     this.downing = false;
     this.downingTimer = 0;
-
-    this.stopImage = options.stopImage;
-    this.moveImages = options.moveImages;
   }
 
   draw(game, ctx) {
