@@ -12,6 +12,10 @@ export default class GameController {
     const appElement = document.querySelector(s.APP_ELEMENT);
     const [w, h] = [s.CANVAS_WIDTH, s.CANVAS_HEIGHT];
     [appElement.style.width, appElement.style.height] = [`${w}px`, `${h}px`];
+    this.offscreenEl = document.createElement("canvas");
+    [this.offscreenEl.width, this.offscreenEl.height] = [w, h];
+
+    this.offscreenCtx = this.offscreenEl.getContext('2d');
 
     const canvasEl = document.createElement("canvas");
     [canvasEl.style.width, canvasEl.style.height] = [`${w}px`, `${h}px`];
@@ -35,13 +39,13 @@ export default class GameController {
   }
 
   _draw() {
-    this.ctx.save();
+    this.offscreenCtx.save();
 
-    this.ctx.fillStyle = 'maroon';
-    this.ctx.fillRect(0, 0, s.CANVAS_WIDTH, s.CANVAS_HEIGHT);
+    this.offscreenCtx.fillStyle = 'maroon';
+    this.offscreenCtx.fillRect(0, 0, s.CANVAS_WIDTH, s.CANVAS_HEIGHT);
 
-    this.ctx.fillStyle = 'darkslategray';
-    this.ctx.fillRect(0, s.GROUND_START_Y, s.CANVAS_WIDTH, s.GROUND_HEIGHT);
+    this.offscreenCtx.fillStyle = 'darkslategray';
+    this.offscreenCtx.fillRect(0, s.GROUND_START_Y, s.CANVAS_WIDTH, s.GROUND_HEIGHT);
 
     const playerPosX = this.player.realX;
     let viewMinX = 0;
@@ -60,7 +64,7 @@ export default class GameController {
 
     stg.forEach(stage => {
       stage.update(this);
-      stage.draw(this, this.ctx);
+      stage.draw(this, this.offscreenCtx);
     });
 
     const enm = this.enemies
@@ -71,13 +75,15 @@ export default class GameController {
 
     enm.forEach(enemy => {
       enemy.update(this);
-      enemy.draw(this, this.ctx);
+      enemy.draw(this, this.offscreenCtx);
     });
 
     this.player.update(this);
-    this.player.draw(this, this.ctx);
+    this.player.draw(this, this.offscreenCtx);
 
-    this.ctx.restore();
+    this.offscreenCtx.restore();
+
+    this.ctx.drawImage(this.offscreenEl, 0, 0);
 
     this.timer = requestAnimationFrame(this._draw.bind(this));
   }
