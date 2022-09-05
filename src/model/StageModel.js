@@ -6,19 +6,16 @@ export default class StageModel extends BaseModel {
   constructor(options) {
     super(options);
 
-    this.width = randomInt({ max: 300, min: 100 });
-    this.height = 20;
-
-    this.x = randomInt({
-      max: s.CANVAS_WIDTH + options.widthIndex * s.CANVAS_WIDTH,
-      min: options.widthIndex * s.CANVAS_WIDTH
-    });
-    this.y = randomInt({ max: s.GROUND_START_Y - 50, min: 1 });
+    this.width = options.width;
+    this.height = options.height;
+    this.x = options.x;
+    this.y = options.y;
+    this.color = options.color;
   }
 
   draw(game, ctx) {
-    ctx.strokeStyle = "gray";
-    ctx.fillStyle = "#505050";
+    ctx.strokeStyle = this.color;
+    ctx.fillStyle = this.color;
 
     let adjustX = 0;
     const stageMiddle = s.CANVAS_WIDTH / 2;

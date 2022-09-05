@@ -2,6 +2,7 @@ import s from "../common/settings";
 import EnemyModel from "../model/EnemyModel";
 import StageModel from "../model/StageModel";
 import { randomInt } from "../common/util";
+import stage from "../model/StageConstant";
 
 export default class GameController {
   constructor({ player, enemyMoveImages, enemyStopImages }) {
@@ -60,7 +61,7 @@ export default class GameController {
       this.offscreenCtx.fillStyle = 'maroon';
       this.offscreenCtx.fillRect(0, 0, s.CANVAS_WIDTH, s.CANVAS_HEIGHT);
 
-      this.offscreenCtx.fillStyle = 'darkslategray';
+      this.offscreenCtx.fillStyle = '#78882d';
       this.offscreenCtx.fillRect(0, s.GROUND_START_Y, s.CANVAS_WIDTH, s.GROUND_HEIGHT);
     }
 
@@ -83,11 +84,7 @@ export default class GameController {
   }
 
   _drawTitle() {
-    this.stages = [];
-    for (let idx = 0; idx < s.STAGE_MAX_X / s.CANVAS_WIDTH; idx++) {
-      const stageLength = randomInt({ max: 10, min: 3 });
-      this.stages = this.stages.concat([...Array(stageLength)].map(() => new StageModel({ widthIndex: idx })));
-    }
+    this.stages = stage["stage1"].map(s => new StageModel(s));
 
     this.enemies = [];
     for (let idx = 0; idx < s.STAGE_MAX_X / s.CANVAS_WIDTH; idx++) {

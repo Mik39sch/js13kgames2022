@@ -117,7 +117,7 @@ export default class EnemyModel extends BaseModel {
 
   _reset(stage = undefined) {
     if (stage) {
-      this.y = stage.y - stage.height + this.height / 2 - s.GROUND_START_Y + 5;
+      this.y = stage.y - s.GROUND_START_Y;
       this.jumping = false;
       this.downing = false;
       this.jumpTop = undefined;

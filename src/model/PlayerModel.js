@@ -171,7 +171,7 @@ export default class PlayerModel extends BaseModel {
 
   _reset(stage = undefined) {
     if (stage) {
-      this.realY = stage.y - stage.height + this.height / 2 - s.GROUND_START_Y + 5;
+      this.realY = stage.y - s.GROUND_START_Y;
       this.jumping = false;
       this.downing = false;
       this.jumpTop = undefined;
