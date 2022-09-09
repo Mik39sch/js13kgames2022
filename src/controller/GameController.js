@@ -173,7 +173,6 @@ export default class GameController {
         });
       }));
     }
-    this.enemies = [];
   }
 
   _drawGame() {
