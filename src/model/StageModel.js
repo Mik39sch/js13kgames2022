@@ -21,10 +21,10 @@ export default class StageModel extends BaseModel {
     const stageMiddle = s.CANVAS_WIDTH / 2;
     if (game.player.realX <= stageMiddle) {
       adjustX = 0;
-    } else if (game.player.realX >= stageMiddle && game.player.realX <= s.STAGE_MAX_X - stageMiddle) {
+    } else if (game.player.realX >= stageMiddle && game.player.realX <= game.stageMaxX - stageMiddle) {
       adjustX = game.player.realX - stageMiddle;
-    } else if (game.player.realX >= s.STAGE_MAX_X - stageMiddle) {
-      adjustX = s.STAGE_MAX_X - s.CANVAS_WIDTH;
+    } else if (game.player.realX >= game.stageMaxX - stageMiddle) {
+      adjustX = game.stageMaxX - s.CANVAS_WIDTH;
     }
     ctx.strokeRect(this.x - adjustX, this.y, this.width, this.height);
     ctx.fillRect(this.x - adjustX, this.y, this.width, this.height);

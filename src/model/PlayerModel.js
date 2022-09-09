@@ -36,6 +36,9 @@ export default class PlayerModel extends BaseModel {
 
     this.downing = false;
     this.downingTimer = 0;
+
+    this.hitting = false;
+    this.hittingTimer = 0;
   }
 
   draw(game, ctx) {
@@ -56,11 +59,15 @@ export default class PlayerModel extends BaseModel {
       img = moveImgs[0];
     }
 
-    ctx.drawImage(
-      img,
-      this.viewX,
-      s.GROUND_START_Y + this.viewY - this.height
-    );
+    if (!this.hitting || (this.hittingTimer > 0 && this.hittingTimer % 2 === 0)) {
+      ctx.drawImage(
+        img,
+        this.viewX,
+        s.GROUND_START_Y + this.viewY - this.height
+      );
+    }
+
+
   }
 
   update(game) {
@@ -71,10 +78,10 @@ export default class PlayerModel extends BaseModel {
       this.movingTImer++;
 
       const stageMiddle = s.CANVAS_WIDTH / 2;
-      if (this.realX >= stageMiddle && this.realX <= s.STAGE_MAX_X - stageMiddle) {
+      if (this.realX >= stageMiddle && this.realX <= game.stageMaxX - stageMiddle) {
         this.viewX = s.CANVAS_WIDTH / 2;
-      } else if (this.realX >= s.STAGE_MAX_X) {
-        this.realX = s.STAGE_MAX_X;
+      } else if (this.realX >= game.stageMaxX) {
+        this.realX = game.stageMaxX;
         this.viewX = s.CANVAS_WIDTH;
       } else {
         this.viewX += 2 + this.xv;
@@ -86,7 +93,7 @@ export default class PlayerModel extends BaseModel {
       this.realX -= 2 + this.xv;
 
       const stageMiddle = s.CANVAS_WIDTH / 2;
-      if (this.realX >= stageMiddle && this.realX <= s.STAGE_MAX_X - stageMiddle) {
+      if (this.realX >= stageMiddle && this.realX <= game.stageMaxX - stageMiddle) {
         this.viewX = s.CANVAS_WIDTH / 2;
       } else if (this.realX <= 0) {
         this.realX = this.viewX = 0;
@@ -101,7 +108,7 @@ export default class PlayerModel extends BaseModel {
 
     if (this.moving && this.xv <= this.maxXV) this.xv += 0.01;
 
-    if (game.keyboard.find(key => key === "ArrowUp") && !this.jumping) {
+    if (game.keyboard.find(key => key === "ArrowUp") && !this.jumping && !this.downing) {
       this.jumping = true;
       this.standingPos = this.realY;
       this.jumpTop = undefined;
@@ -122,6 +129,13 @@ export default class PlayerModel extends BaseModel {
 
     if (this.jumping) this._jump(standPlaces);
     if (this.downing) this._down(standPlaces);
+
+    if (this.hitting) {
+      this.hittingTimer -= 1;
+      if (this.hittingTimer === 0) {
+        this.hitting = false;
+      }
+    }
   }
 
   _jump(standPlaces) {

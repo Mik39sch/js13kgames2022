@@ -6,13 +6,25 @@ const enemyPatterns = [
   { speed: 1, jump: 0, walkLength: 100 },
   { speed: 1, jump: 10, walkLength: 200 },
   { speed: 3, jump: 0, walkLength: 100 },
-  { speed: 2, jump: 100, walkLength: 200 }
+  { speed: 2, jump: 100, walkLength: 300 },
+  { speed: 3, jump: 100, walkLength: 250 }
 ]
 
 export default class EnemyModel extends BaseModel {
   constructor(options) {
     super(options);
-    this.pattern = enemyPatterns[randomInt({ max: enemyPatterns.length, min: 0 })];
+    let patternMax = 4;
+    if (options.level) {
+      patternMax = options.level + 1;
+      if (options.level === 3) {
+        patternMax = 5;
+      }
+    }
+    this.pattern = enemyPatterns[randomInt({ max: patternMax, min: 0 })];
+    if (options.pattern) {
+      this.pattern = options.pattern;
+    }
+
     this.x = 0;
     this.yv = 10;
     this.startPosition = options.startPosition;
@@ -20,6 +32,9 @@ export default class EnemyModel extends BaseModel {
 
     this.y = 0;
     this.height = this.width = 32;
+    if (options.size) {
+      this.height = this.width = options.size;
+    }
 
     this.jumping = false;
     this.standingPos = 0;
@@ -41,10 +56,10 @@ export default class EnemyModel extends BaseModel {
     const stageMiddle = s.CANVAS_WIDTH / 2;
     if (game.player.realX <= stageMiddle) {
       adjustX = 0;
-    } else if (game.player.realX >= stageMiddle && game.player.realX <= s.STAGE_MAX_X - stageMiddle) {
+    } else if (game.player.realX >= stageMiddle && game.player.realX <= game.stageMaxX - stageMiddle) {
       adjustX = game.player.realX - stageMiddle;
-    } else if (game.player.realX >= s.STAGE_MAX_X - stageMiddle) {
-      adjustX = s.STAGE_MAX_X - s.CANVAS_WIDTH;
+    } else if (game.player.realX >= game.stageMaxX - stageMiddle) {
+      adjustX = game.stageMaxX - s.CANVAS_WIDTH;
     }
 
     const imgKey = this.turn ? "trans" : "normal";
@@ -63,7 +78,9 @@ export default class EnemyModel extends BaseModel {
     ctx.drawImage(
       img,
       this.x + this.startPosition - adjustX,
-      s.GROUND_START_Y + this.y - this.height
+      s.GROUND_START_Y + this.y - this.height,
+      this.width,
+      this.height
     );
   }
 

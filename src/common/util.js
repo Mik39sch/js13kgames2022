@@ -13,3 +13,14 @@ export const setLoadAllCallback = (elements, callback) => {
         };
     }
 };
+
+export const getTime = function () {
+    const now = window.performance && (
+        performance.now ||
+        performance.mozNow ||
+        performance.msNow ||
+        performance.oNow ||
+        performance.webkitNow);
+
+    return (now && now.call(performance)) || (new Date().getTime());
+}
