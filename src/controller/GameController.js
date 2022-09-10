@@ -22,6 +22,8 @@ export default class GameController {
     this.level = 1;
     this.clear = false;
     this.clearTIme = 0;
+    this.bossTimer = 0;
+    this.bossClear = false;
 
     this.explainedRosary = false;
     this.showExplainRosary = false;
@@ -200,11 +202,11 @@ export default class GameController {
 
     this.enemies = [];
     for (let idx = 0; idx < this.stageMaxX / s.CANVAS_WIDTH; idx++) {
-      const enemyLength = randomInt({ max: this.level + 2, min: 1 });
+      const enemyLength = randomInt({ max: this.level * 2, min: this.level });
       this.enemies = this.enemies.concat([...Array(enemyLength)].map(() => {
         const x = randomInt({
           max: s.CANVAS_WIDTH + idx * s.CANVAS_WIDTH,
-          min: idx * s.CANVAS_WIDTH
+          min: idx * s.CANVAS_WIDTH + 10
         });
         return new EnemyModel({
           level: this.level,
@@ -241,6 +243,9 @@ export default class GameController {
       this.level++;
       if (this.level > 3) {
         this.stages = [];
+        this.enemies = [];
+        this.items = [];
+        this.header.rosary.point = 0;
         this.gamemode = "boss";
         this.player.initialize();
       } else {
@@ -259,7 +264,7 @@ export default class GameController {
       );
 
     const enemyIdx = this._hit(this.enemies);
-    if (!this.player.hitting && enemyIdx >= 0) {
+    if (!this.player.hitting && enemyIdx >= 0 && !this.enemies[enemyIdx].hitting) {
       this._hitAction(enemyIdx);
     }
     const itemIdx = this.getItem();
@@ -303,6 +308,7 @@ export default class GameController {
 
     if (this.enemies.length === 0) {
       this.enemies = [new EnemyModel({
+        hitPoint: 5,
         size: 128,
         pattern: { speed: 1, jump: 20, walkLength: 600 },
         startPosition: 300,
@@ -318,14 +324,58 @@ export default class GameController {
       })];
     }
 
+    if (this.items.length <= 5 && this.bossTimer % 101 === 0) {
+      const stageIdx = randomInt({ max: this.stages.length, min: 0 });
+      const stg = this.stages[stageIdx];
+      const typeArray = ["coin", "rosary", "coin", "none"];
+      const typeIdx = randomInt({ max: typeArray.length, min: 0 });
+      const type = typeArray[typeIdx];
+
+      if (type === "none") {
+        // pass
+      } else if (type === "coin") {
+        this.items.push(new ItemModel({
+          image: this.coinImage,
+          x: stg.x + stg.width / 2 - this.coinImage.width / 2,
+          y: stg.y - s.GROUND_START_Y,
+          type
+        }))
+      } else if (
+        type === "rosary" &&
+        !this.items.some(item => item.type === "rosary") &&
+        this.header.rosary.point <= 0
+      ) {
+        this.items.push(new ItemModel({
+          image: this.rosaryImage,
+          x: stg.x + stg.width / 2 - this.rosaryImage.width / 2,
+          y: stg.y - s.GROUND_START_Y,
+          type
+        }))
+      }
+    }
+
+    const itemIdx = this.getItem();
+    if (itemIdx >= 0) {
+      const gItem = this.items[itemIdx];
+      if (gItem.type === "rosary" && !this.explainedRosary) {
+        this.explainedRosary = true;
+        this.showExplainRosary = true;
+        this.showExplainRosaryTimer = 0;
+      }
+      gItem.action(this);
+      this.items.splice(itemIdx, 1);
+    }
+
     this.stages.forEach(stage => stage.draw(this));
+    this.items.forEach(item => item.draw(this));
     this.enemies.forEach(enemy => {
       enemy.update(this);
       enemy.draw(this);
     });
 
-    if (!this.player.hitting && this._hit(this.enemies)) {
-      this._hitAction();
+    const enemyIdx = this._hit(this.enemies);
+    if (!this.player.hitting && enemyIdx >= 0 && !this.enemies[enemyIdx].hitting) {
+      this._hitAction(enemyIdx);
     }
 
     this.stageMaxX = s.CANVAS_WIDTH;
@@ -333,6 +383,7 @@ export default class GameController {
     this.player.draw(this);
 
     this.header.draw(this);
+    this.bossTimer++;
   }
 
   _drawGameover() {
@@ -378,7 +429,15 @@ export default class GameController {
 
   _hitAction(enemyIdx) {
     if (this.header.rosary.point > 0) {
-      this.enemies.splice(enemyIdx, 1);
+      const enemy = this.enemies[enemyIdx];
+      if (enemy.hitPoint && enemy.hitPoint > 0) {
+        this.enemies[enemyIdx].hitPoint--;
+        this.enemies[enemyIdx].hitting = true;
+        this.enemies[enemyIdx].hittingTimer = 100;
+      } else {
+        this.enemies.splice(enemyIdx, 1);
+      }
+
       this.header.rosary.point--;
     } else {
       this.header.lifePoint.point -= 1;

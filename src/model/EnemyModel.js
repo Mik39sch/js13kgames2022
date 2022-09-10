@@ -49,6 +49,13 @@ export default class EnemyModel extends BaseModel {
     this.moveImages = options.moveImages;
     this.imageIndex = 0;
     this.timer = 0;
+    this.hitting = false;
+    this.hittingTimer = 0;
+
+    this.hitPoint = 0;
+    if (options.hitPoint) {
+      this.hitPoint = options.hitPoint;
+    }
   }
 
   draw(game) {
@@ -75,13 +82,16 @@ export default class EnemyModel extends BaseModel {
     if (this.jumping || this.downing) {
       img = moveImgs[0];
     }
-    game.ctx.drawImage(
-      img,
-      this.x + this.startPosition - adjustX,
-      s.GROUND_START_Y + this.y - this.height,
-      this.width,
-      this.height
-    );
+
+    if (!this.hitting || (this.hittingTimer > 0 && this.hittingTimer % 2 === 0)) {
+      game.ctx.drawImage(
+        img,
+        this.x + this.startPosition - adjustX,
+        s.GROUND_START_Y + this.y - this.height,
+        this.width,
+        this.height
+      );
+    }
   }
 
   update(game) {
@@ -107,6 +117,13 @@ export default class EnemyModel extends BaseModel {
     const standPlaces = game.getViewStages({ x: this.x + this.startPosition, height: this.height });
     if (this.jumping) this._jump(standPlaces);
     this.timer++;
+
+    if (this.hitting) {
+      this.hittingTimer -= 1;
+      if (this.hittingTimer === 0) {
+        this.hitting = false;
+      }
+    }
   }
 
   _jump(standPlaces) {

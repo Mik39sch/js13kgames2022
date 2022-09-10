@@ -11,10 +11,10 @@ export default class HeaderModel extends BaseModel {
       x: 0, y: 0, img: options.image, point: maxPoint, maxPoint: maxPoint
     };
     this.rosary = {
-      x: this.lifePoint.img.width * maxPoint + 150, y: 0, img: options.rosaryImage, point: 0
+      x: this.lifePoint.img.width * maxPoint + 200, y: 0, img: options.rosaryImage, point: 0
     };
     this.coin = {
-      x: this.lifePoint.img.width * maxPoint + 150 + this.rosary.img.width + 30, y: -3, img: options.coinImage, point: 0
+      x: this.lifePoint.img.width * maxPoint + 200 + this.rosary.img.width + 30, y: -3, img: options.coinImage, point: 0
     };
     this.time = {
       x: s.CANVAS_WIDTH - 10, y: 10, startTime: getTime(), nowTime: 0
