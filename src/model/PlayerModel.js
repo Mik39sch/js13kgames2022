@@ -41,7 +41,7 @@ export default class PlayerModel extends BaseModel {
     this.hittingTimer = 0;
   }
 
-  draw(game, ctx) {
+  draw(game) {
     const imgKey = this.turn ? "trans" : "normal";
     const moveImgs = this.moveImages[imgKey];
     let img = this.stopImage[imgKey];
@@ -60,7 +60,7 @@ export default class PlayerModel extends BaseModel {
     }
 
     if (!this.hitting || (this.hittingTimer > 0 && this.hittingTimer % 2 === 0)) {
-      ctx.drawImage(
+      game.ctx.drawImage(
         img,
         this.viewX,
         s.GROUND_START_Y + this.viewY - this.height

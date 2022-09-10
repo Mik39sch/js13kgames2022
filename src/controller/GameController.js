@@ -4,21 +4,28 @@ import StageModel from "../model/StageModel";
 import { randomInt, getTime } from "../common/util";
 import stage from "../model/StageConstant";
 import HeaderModel from "../model/HeaderModel";
+import ItemModel from "../model/ItemModel";
 
 export default class GameController {
-  constructor({ player, enemyMoveImages, enemyStopImages }) {
+  constructor({ player, enemyMoveImages, enemyStopImages, coinImage, rosaryImage }) {
     this.player = player;
     this.header = undefined;
     this.stages = [];
     this.enemies = [];
+    this.items = [];
     this.enemyMoveImages = enemyMoveImages;
     this.enemyStopImages = enemyStopImages;
+    this.coinImage = coinImage;
+    this.rosaryImage = rosaryImage;
     this.timer = 0;
     this.keyboard = [];
     this.level = 1;
     this.clear = false;
-    this.setKeyEvent();
     this.clearTIme = 0;
+
+    this.explainedRosary = false;
+    this.showExplainRosary = false;
+    this.showExplainRosaryTimer = 0;
 
     this.stageMaxX = s.STAGE_MAX_X;
 
@@ -30,14 +37,16 @@ export default class GameController {
     this.offscreenEl = document.createElement("canvas");
     [this.offscreenEl.width, this.offscreenEl.height] = [w, h];
 
-    this.offscreenCtx = this.offscreenEl.getContext('2d');
+    this.ctx = this.offscreenEl.getContext('2d');
 
     const canvasEl = document.createElement("canvas");
     [canvasEl.style.width, canvasEl.style.height] = [`${w}px`, `${h}px`];
     [canvasEl.width, canvasEl.height] = [w, h];
 
-    this.ctx = canvasEl.getContext('2d');
+    this.displayCtx = canvasEl.getContext('2d');
     appElement.appendChild(canvasEl);
+
+    this.setKeyEvent();
   }
 
   setPlayer(player) {
@@ -64,13 +73,13 @@ export default class GameController {
   }
 
   _draw() {
-    this.offscreenCtx.save();
+    this.ctx.save();
     if (this.gamemode !== "gameover") {
-      this.offscreenCtx.fillStyle = 'maroon';
-      this.offscreenCtx.fillRect(0, 0, s.CANVAS_WIDTH, s.CANVAS_HEIGHT);
+      this.ctx.fillStyle = 'maroon';
+      this.ctx.fillRect(0, 0, s.CANVAS_WIDTH, s.CANVAS_HEIGHT);
 
-      this.offscreenCtx.fillStyle = '#78882d';
-      this.offscreenCtx.fillRect(0, s.GROUND_START_Y, s.CANVAS_WIDTH, s.GROUND_HEIGHT);
+      this.ctx.fillStyle = '#78882d';
+      this.ctx.fillRect(0, s.GROUND_START_Y, s.CANVAS_WIDTH, s.GROUND_HEIGHT);
     }
 
     if (this.gamemode === "title") {
@@ -86,8 +95,8 @@ export default class GameController {
       this._drawGameover();
     }
 
-    this.offscreenCtx.restore();
-    this.ctx.drawImage(this.offscreenEl, 0, 0);
+    this.ctx.restore();
+    this.displayCtx.drawImage(this.offscreenEl, 0, 0);
 
     if (this.gamemode === "play" || this.gamemode === "boss") {
       this.timer = requestAnimationFrame(this._draw.bind(this));
@@ -97,23 +106,29 @@ export default class GameController {
   _drawTitle() {
     this.level = 1;
     this.clear = false;
-    this.header = new HeaderModel({ image: this.player.stopImage["normal"] });
+    this.clearTIme = 0;
+
+    this.explainedRosary = false;
+    this.showExplainRosary = false;
+    this.showExplainRosaryTimer = 0;
+
+    this.header = new HeaderModel({ image: this.player.stopImage["normal"], rosaryImage: this.rosaryImage, coinImage: this.coinImage });
     this.initializeStage();
 
     this.stages
       .filter(stage => stage.x + stage.width >= 0 && stage.x <= s.CANVAS_WIDTH)
       .forEach(stage => {
         stage.update(this);
-        stage.draw(this, this.offscreenCtx);
+        stage.draw(this);
       });
 
-    this.offscreenCtx.font = "bold 40px serif";
-    this.offscreenCtx.fillStyle = "white";
-    this.offscreenCtx.textBaseline = 'center';
-    this.offscreenCtx.textAlign = 'center';
+    this.ctx.font = "bold 40px serif";
+    this.ctx.fillStyle = "white";
+    this.ctx.textBaseline = 'center';
+    this.ctx.textAlign = 'center';
 
     const title = "Lost Treasures 2";
-    this.offscreenCtx.fillText(title, s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
+    this.ctx.fillText(title, s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
 
     const fontSize = 20;
     const lineHeight = 1.2;
@@ -133,26 +148,59 @@ export default class GameController {
     text += "\n";
     text += "Press any key to start a new game.";
 
-    this.offscreenCtx.beginPath();
-    this.offscreenCtx.textBaseline = 'left';
-    this.offscreenCtx.textAlign = 'left';
-    this.offscreenCtx.font = "bold " + fontSize + "px Arial, meiryo, sans-serif";
+    this.ctx.beginPath();
+    this.ctx.textBaseline = 'left';
+    this.ctx.textAlign = 'left';
+    this.ctx.font = "bold " + fontSize + "px Arial, meiryo, sans-serif";
     for (var lines = text.split("\n"), i = 0, l = lines.length; l > i; i++) {
       var line = lines[i];
       var addY = fontSize;
       if (i) addY += fontSize * lineHeight * i;
 
-      this.offscreenCtx.fillText(line, x + 0, y + addY);
+      this.ctx.fillText(line, x + 0, y + addY);
     }
   }
 
   initializeStage() {
     this.player.initialize();
-    this.stages = stage["stage"].map(s => new StageModel(s));
+    this.items = [
+      new ItemModel({
+        image: this.coinImage, x: 100, y: 0, type: "coin"
+      }), new ItemModel({
+        image: this.rosaryImage, x: 200, y: 0, type: "rosary"
+      }),];
+    this.stages = stage["stage"].map(stg => {
+      if (stg.item) {
+        const img = stg.item === "coin" ? this.coinImage : this.rosaryImage;
+        this.items.push(new ItemModel({
+          image: img,
+          x: stg.x + stg.width / 2 - img.width / 2,
+          y: stg.y - s.GROUND_START_Y,
+          type: stg.item
+        }))
+      }
+      return new StageModel(stg)
+    });
+
+    for (let idx = 0; idx < this.stageMaxX / s.CANVAS_WIDTH; idx++) {
+      const itemLength = randomInt({ max: this.level + 2, min: this.level });
+      this.items = this.items.concat([...Array(itemLength)].map(() => {
+        const x = randomInt({
+          max: s.CANVAS_WIDTH + idx * s.CANVAS_WIDTH,
+          min: idx * s.CANVAS_WIDTH
+        });
+        return new ItemModel({
+          image: this.coinImage,
+          x: x,
+          y: 0,
+          type: "coin"
+        });
+      }));
+    }
 
     this.enemies = [];
     for (let idx = 0; idx < this.stageMaxX / s.CANVAS_WIDTH; idx++) {
-      const enemyLength = randomInt({ max: this.level + 2, min: this.level });
+      const enemyLength = randomInt({ max: this.level + 2, min: 1 });
       this.enemies = this.enemies.concat([...Array(enemyLength)].map(() => {
         const x = randomInt({
           max: s.CANVAS_WIDTH + idx * s.CANVAS_WIDTH,
@@ -189,7 +237,7 @@ export default class GameController {
 
     if (playerPosX >= s.STAGE_MAX_X) {
       this.clear = true;
-      this.clearTIme = getTime();
+      this.clearTIme = 0;
       this.level++;
       if (this.level > 3) {
         this.stages = [];
@@ -210,24 +258,42 @@ export default class GameController {
         enemy.x + enemy.startPosition - enemy.height < viewMaxX
       );
 
-    if (!this.player.hitting && this._hit(this.enemies)) {
-      this._hitAction();
+    const enemyIdx = this._hit(this.enemies);
+    if (!this.player.hitting && enemyIdx >= 0) {
+      this._hitAction(enemyIdx);
+    }
+    const itemIdx = this.getItem();
+    if (itemIdx >= 0) {
+      const gItem = this.items[itemIdx];
+      if (gItem.type === "rosary" && !this.explainedRosary) {
+        this.explainedRosary = true;
+        this.showExplainRosary = true;
+        this.showExplainRosaryTimer = 0;
+      }
+      gItem.action(this);
+      this.items.splice(itemIdx, 1);
     }
 
     this.stages
       .filter(stage => stage.x + stage.width >= viewMinX && stage.x <= viewMaxX).forEach(stage => {
         stage.update(this);
-        stage.draw(this, this.offscreenCtx);
+        stage.draw(this);
       });
+
+    this.items.forEach(item => item.draw(this));
 
     enemies.forEach(enemy => {
       enemy.update(this);
-      enemy.draw(this, this.offscreenCtx);
+      enemy.draw(this);
     });
 
     this.player.update(this);
-    this.player.draw(this, this.offscreenCtx);
-    this.header.draw(this, this.offscreenCtx);
+    this.player.draw(this);
+
+    this.header.draw(this);
+    if (this.showExplainRosary) {
+      this._drawExplainRosary();
+    }
   }
 
   _drawBoss() {
@@ -252,10 +318,10 @@ export default class GameController {
       })];
     }
 
-    this.stages.forEach(stage => stage.draw(this, this.offscreenCtx));
+    this.stages.forEach(stage => stage.draw(this));
     this.enemies.forEach(enemy => {
       enemy.update(this);
-      enemy.draw(this, this.offscreenCtx);
+      enemy.draw(this);
     });
 
     if (!this.player.hitting && this._hit(this.enemies)) {
@@ -264,17 +330,17 @@ export default class GameController {
 
     this.stageMaxX = s.CANVAS_WIDTH;
     this.player.update(this);
-    this.player.draw(this, this.offscreenCtx);
+    this.player.draw(this);
 
-    this.header.draw(this, this.offscreenCtx);
+    this.header.draw(this);
   }
 
   _drawGameover() {
-    this.offscreenCtx.font = "bold 40px serif";
-    this.offscreenCtx.fillStyle = "white";
-    this.offscreenCtx.textBaseline = 'center';
-    this.offscreenCtx.textAlign = 'center';
-    this.offscreenCtx.fillText("GAME OVER... YOU ARE DEAD", s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
+    this.ctx.font = "bold 40px serif";
+    this.ctx.fillStyle = "white";
+    this.ctx.textBaseline = 'center';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText("GAME OVER... YOU ARE DEAD", s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
   }
 
   getViewStages(target) {
@@ -295,7 +361,7 @@ export default class GameController {
     const playerMinY = this.player.realY - this.player.height;
     const playerMaxY = this.player.realY;
 
-    return enemies.some(enemy => {
+    return enemies.findIndex(enemy => {
       const enemyMinX = enemy.x + enemy.startPosition + 10;
       const enemyMaxX = enemy.x + enemy.startPosition + enemy.width - 10;
       const enemyMinY = enemy.y - enemy.height;
@@ -310,30 +376,93 @@ export default class GameController {
     });
   }
 
-  _hitAction() {
-    this.header.lifePoint.point -= 1;
-    if (this.header.lifePoint.point < 0) {
-      this.gamemode = "gameover";
+  _hitAction(enemyIdx) {
+    if (this.header.rosary.point > 0) {
+      this.enemies.splice(enemyIdx, 1);
+      this.header.rosary.point--;
+    } else {
+      this.header.lifePoint.point -= 1;
+      if (this.header.lifePoint.point <= 0) {
+        this.gamemode = "gameover";
+      }
+      this.player.hitting = true;
+      this.player.hittingTimer = 100;
     }
-    this.player.hitting = true;
-    this.player.hittingTimer = 100;
   }
 
-  getStageKey() {
-    return `stage${this.level}`;
+  getItem() {
+    const playerMinX = this.player.realX;
+    const playerMaxX = this.player.realX + this.player.width;
+    const playerMinY = this.player.realY - this.player.height;
+    const playerMaxY = this.player.realY;
+
+    return this.items.findIndex(item => {
+      const itemMinX = item.x;
+      const itemMaxX = item.x + 32;
+      const itemMinY = item.y - 32;
+      const itemMaxY = item.y;
+
+      return (
+        (itemMinX <= playerMinX && playerMinX <= itemMaxX && itemMinY <= playerMinY && playerMinY <= itemMaxY) ||
+        (itemMinX <= playerMaxX && playerMaxX <= itemMaxX && itemMinY <= playerMinY && playerMinY <= itemMaxY) ||
+        (itemMinX <= playerMinX && playerMinX <= itemMaxX && itemMinY <= playerMaxY && playerMaxY <= itemMaxY) ||
+        (itemMinX <= playerMaxX && playerMaxX <= itemMaxX && itemMinY <= playerMaxY && playerMaxY <= itemMaxY)
+      );
+    });
   }
 
   showCLearText() {
-    this.offscreenCtx.font = "bold 40px serif";
-    this.offscreenCtx.fillStyle = "white";
-    this.offscreenCtx.textBaseline = 'center';
-    this.offscreenCtx.textAlign = 'center';
+    this.ctx.font = "bold 40px serif";
+    this.ctx.fillStyle = "white";
+    this.ctx.textBaseline = 'center';
+    this.ctx.textAlign = 'center';
 
     const title = `Stage${this.level} Clear!!!`;
-    this.offscreenCtx.fillText(title, s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
-    const time = Math.floor(getTime() - this.clearTIme / 1000) / 1000;
-    if (time >= 30) {
+    this.ctx.fillText(title, s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
+    this.clearTIme++;
+    if (this.clearTIme >= 100) {
       this.clear = false;
+      this.clearTIme = 0;
+    }
+  }
+
+  rosaryAction() {
+    this.header.rosary.point++;
+  }
+
+  _drawExplainRosary() {
+    this.ctx.font = "bold 40px serif";
+    this.ctx.fillStyle = "white";
+    this.ctx.textBaseline = 'center';
+    this.ctx.textAlign = 'center';
+
+    const title = "You get Rosary!";
+    this.ctx.fillText(title, s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
+
+    const fontSize = 20;
+    const lineHeight = 1.2;
+    const x = 20;
+    const y = s.CANVAS_HEIGHT / 3 + 50;
+
+    let text = "If you have rosaries, you can attack enemies.\n";
+    text += "1 rosary can attack 1 enemy.\n";
+
+    this.ctx.beginPath();
+    this.ctx.textBaseline = 'left';
+    this.ctx.textAlign = 'left';
+    this.ctx.font = "bold " + fontSize + "px Arial, meiryo, sans-serif";
+    for (var lines = text.split("\n"), i = 0, l = lines.length; l > i; i++) {
+      var line = lines[i];
+      var addY = fontSize;
+      if (i) addY += fontSize * lineHeight * i;
+
+      this.ctx.fillText(line, x + 0, y + addY);
+    }
+
+    this.showExplainRosaryTimer++;
+    if (this.showExplainRosaryTimer > 300) {
+      this.showExplainRosaryTimer = 0;
+      this.showExplainRosary = false;
     }
   }
 

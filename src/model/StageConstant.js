@@ -13,7 +13,8 @@ export default {
       height: 180,
       x: 900,
       y: 360,
-      color: "#5b5b5b"
+      color: "#5b5b5b",
+      item: "coin"
     },
 
     {
@@ -21,7 +22,8 @@ export default {
       height: 270,
       x: 1100,
       y: 270,
-      color: "#5b5b5b"
+      color: "#5b5b5b",
+      item: "rosary"
     },
 
     {
@@ -37,7 +39,8 @@ export default {
       height: 30,
       x: 1200,
       y: 70,
-      color: "white"
+      color: "white",
+      item: "coin"
     },
 
     {
@@ -79,7 +82,8 @@ export default {
       height: 270,
       x: 3100,
       y: 270,
-      color: "#5b5b5b"
+      color: "#5b5b5b",
+      item: "rosary"
     },
     {
       width: 150,
@@ -100,7 +104,8 @@ export default {
       height: 240,
       x: 3600,
       y: 300,
-      color: "#5b5b5b"
+      color: "#5b5b5b",
+      item: "coin"
     }, {
       width: 180,
       height: 30,
@@ -128,7 +133,8 @@ export default {
       height: 270,
       x: 5100,
       y: 270,
-      color: "#5b5b5b"
+      color: "#5b5b5b",
+      item: "rosary"
     },
     {
       width: 150,
@@ -150,14 +156,16 @@ export default {
       height: 180,
       x: 5900,
       y: 360,
-      color: "#5b5b5b"
+      color: "#5b5b5b",
+      item: "coin"
     },
     {
       width: 350,
       height: 270,
       x: 6100,
       y: 270,
-      color: "#5b5b5b"
+      color: "#5b5b5b",
+      item: "rosary"
     },
     {
       width: 150,
@@ -178,7 +186,8 @@ export default {
       height: 100,
       x: 6700,
       y: 440,
-      color: "#5b5b5b"
+      color: "#5b5b5b",
+      item: "coin"
     }, {
       width: 150,
       height: 20,
@@ -227,7 +236,8 @@ export default {
       height: 100,
       x: 9500,
       y: 440,
-      color: "#5b5b5b"
+      color: "#5b5b5b",
+      item: "coin"
     }, {
       width: 100,
       height: 100,
@@ -239,7 +249,8 @@ export default {
       height: 100,
       x: 10000,
       y: 440,
-      color: "#5b5b5b"
+      color: "#5b5b5b",
+      item: "coin"
     },
 
     {
@@ -341,6 +352,9 @@ export default {
       color: "white"
     },
   ],
+
+
+
   boss_stage: [
     {
       width: 100,
