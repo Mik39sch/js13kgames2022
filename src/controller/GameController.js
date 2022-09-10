@@ -66,7 +66,7 @@ export default class GameController {
         this.header.time.startTime = getTime();
         this._draw();
       }
-      if (this.gamemode === "gameover" && e.code === "Enter") {
+      if ((this.gamemode === "gameover" || this.gamemode === "clear") && e.code === "Enter") {
         this.gamemode = "title";
         this._draw();
       }
@@ -96,6 +96,9 @@ export default class GameController {
     if (this.gamemode === "gameover") {
       this._drawGameover();
     }
+    if (this.gamemode === "clear") {
+      this._drawClear();
+    }
 
     this.ctx.restore();
     this.displayCtx.drawImage(this.offscreenEl, 0, 0);
@@ -124,18 +127,7 @@ export default class GameController {
         stage.draw(this);
       });
 
-    this.ctx.font = "bold 40px serif";
-    this.ctx.fillStyle = "white";
-    this.ctx.textBaseline = 'center';
-    this.ctx.textAlign = 'center';
-
     const title = "Lost Treasures 2";
-    this.ctx.fillText(title, s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
-
-    const fontSize = 20;
-    const lineHeight = 1.2;
-    const x = 20;
-    const y = s.CANVAS_HEIGHT / 3 + 50;
 
     let text = "One day... There was a treasures hunter.\n";
     text += "He heard a rumor that there was some treasures in the cave.\n";
@@ -150,17 +142,7 @@ export default class GameController {
     text += "\n";
     text += "Press any key to start a new game.";
 
-    this.ctx.beginPath();
-    this.ctx.textBaseline = 'left';
-    this.ctx.textAlign = 'left';
-    this.ctx.font = "bold " + fontSize + "px Arial, meiryo, sans-serif";
-    for (var lines = text.split("\n"), i = 0, l = lines.length; l > i; i++) {
-      var line = lines[i];
-      var addY = fontSize;
-      if (i) addY += fontSize * lineHeight * i;
-
-      this.ctx.fillText(line, x + 0, y + addY);
-    }
+    this._drawText(title, text);
   }
 
   initializeStage() {
@@ -310,8 +292,8 @@ export default class GameController {
       this.enemies = [new EnemyModel({
         hitPoint: 5,
         size: 128,
-        pattern: { speed: 1, jump: 20, walkLength: 600 },
-        startPosition: 300,
+        pattern: { speed: 1, jump: 20, walkLength: 800 },
+        startPosition: 100,
         moveImages: {
           normal: [
             this.enemyStopImages[0],
@@ -324,7 +306,14 @@ export default class GameController {
       })];
     }
 
-    if (this.items.length <= 5 && this.bossTimer % 101 === 0) {
+    let itemMax = 5;
+    let createItemTime = 101;
+    if (this.enemies[0].hitPoint <= 2) {
+      itemMax = 3;
+      createItemTime = 151;
+    }
+
+    if (this.items.length <= itemMax && this.bossTimer % createItemTime === 0) {
       const stageIdx = randomInt({ max: this.stages.length, min: 0 });
       const stg = this.stages[stageIdx];
       const typeArray = ["coin", "rosary", "coin", "none"];
@@ -376,6 +365,9 @@ export default class GameController {
     const enemyIdx = this._hit(this.enemies);
     if (!this.player.hitting && enemyIdx >= 0 && !this.enemies[enemyIdx].hitting) {
       this._hitAction(enemyIdx);
+      if (this.enemies[enemyIdx].hitPoint === 0) {
+        this.gamemode = "clear";
+      }
     }
 
     this.stageMaxX = s.CANVAS_WIDTH;
@@ -387,11 +379,28 @@ export default class GameController {
   }
 
   _drawGameover() {
-    this.ctx.font = "bold 40px serif";
-    this.ctx.fillStyle = "white";
-    this.ctx.textBaseline = 'center';
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText("GAME OVER... YOU ARE DEAD", s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
+    const title = "GAME OVER... YOU ARE DEAD";
+
+    let text = "He could kill zombie king and he could find many treasures.\n";
+    text += "His treasure hunt will continue.\n";
+    text += "\n";
+    text += "\n";
+    text += "Press Enter key to go back Title.";
+
+    this._drawText(title, text);
+  }
+
+  _drawClear() {
+    const title = "Game Clear!!!";
+
+    let text = "He could kill zombie king and he could find many treasures.\n";
+    text += "His treasure hunt will continue.\n";
+    text += "\n";
+
+    text += "\n";
+    text += "Press Enter key to go back Title.";
+
+    this._drawText(title, text);
   }
 
   getViewStages(target) {
@@ -434,6 +443,10 @@ export default class GameController {
         this.enemies[enemyIdx].hitPoint--;
         this.enemies[enemyIdx].hitting = true;
         this.enemies[enemyIdx].hittingTimer = 100;
+
+        if (enemy.hitPoint <= 2) {
+          this.enemies[enemyIdx].pattern.speed = 3;
+        }
       } else {
         this.enemies.splice(enemyIdx, 1);
       }
@@ -471,18 +484,15 @@ export default class GameController {
   }
 
   showCLearText() {
-    this.ctx.font = "bold 40px serif";
-    this.ctx.fillStyle = "white";
-    this.ctx.textBaseline = 'center';
-    this.ctx.textAlign = 'center';
-
     const title = `Stage${this.level} Clear!!!`;
-    this.ctx.fillText(title, s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
+    this._drawText(title, undefined);
+
     this.clearTIme++;
     if (this.clearTIme >= 100) {
       this.clear = false;
       this.clearTIme = 0;
     }
+
   }
 
   rosaryAction() {
@@ -490,38 +500,43 @@ export default class GameController {
   }
 
   _drawExplainRosary() {
-    this.ctx.font = "bold 40px serif";
-    this.ctx.fillStyle = "white";
-    this.ctx.textBaseline = 'center';
-    this.ctx.textAlign = 'center';
-
-    const title = "You get Rosary!";
-    this.ctx.fillText(title, s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
-
-    const fontSize = 20;
-    const lineHeight = 1.2;
-    const x = 20;
-    const y = s.CANVAS_HEIGHT / 3 + 50;
-
+    const title = "You got Rosary!";
     let text = "If you have rosaries, you can attack enemies.\n";
     text += "1 rosary can attack 1 enemy.\n";
-
-    this.ctx.beginPath();
-    this.ctx.textBaseline = 'left';
-    this.ctx.textAlign = 'left';
-    this.ctx.font = "bold " + fontSize + "px Arial, meiryo, sans-serif";
-    for (var lines = text.split("\n"), i = 0, l = lines.length; l > i; i++) {
-      var line = lines[i];
-      var addY = fontSize;
-      if (i) addY += fontSize * lineHeight * i;
-
-      this.ctx.fillText(line, x + 0, y + addY);
-    }
+    this._drawText(title, text);
 
     this.showExplainRosaryTimer++;
     if (this.showExplainRosaryTimer > 300) {
       this.showExplainRosaryTimer = 0;
       this.showExplainRosary = false;
+    }
+  }
+
+  _drawText(title, summary) {
+    if (title) {
+      this.ctx.font = "bold 40px serif";
+      this.ctx.fillStyle = "white";
+      this.ctx.textBaseline = 'center';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText(title, s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
+    }
+
+    if (summary) {
+      const fontSize = 20;
+      const lineHeight = 1.2;
+      const x = 20;
+      const y = s.CANVAS_HEIGHT / 3 + 50;
+      this.ctx.beginPath();
+      this.ctx.textBaseline = 'left';
+      this.ctx.textAlign = 'left';
+      this.ctx.font = "bold " + fontSize + "px Arial, meiryo, sans-serif";
+      for (var lines = summary.split("\n"), i = 0, l = lines.length; l > i; i++) {
+        var line = lines[i];
+        var addY = fontSize;
+        if (i) addY += fontSize * lineHeight * i;
+
+        this.ctx.fillText(line, x + 0, y + addY);
+      }
     }
   }
 

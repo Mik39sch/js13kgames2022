@@ -6,7 +6,7 @@ export default class HeaderModel extends BaseModel {
   constructor(options) {
     super(options);
 
-    const maxPoint = 3;
+    const maxPoint = 4;
     this.lifePoint = {
       x: 0, y: 0, img: options.image, point: maxPoint, maxPoint: maxPoint
     };
