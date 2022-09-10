@@ -1,5 +1,6 @@
 import BaseModel from "./BaseModel"
 import s from "../common/settings";
+import { jumpSound } from "../common/sound";
 
 export default class PlayerModel extends BaseModel {
   constructor(options) {
@@ -113,6 +114,7 @@ export default class PlayerModel extends BaseModel {
       this.standingPos = this.realY;
       this.jumpTop = undefined;
       this.jumpingTimer = 0;
+      jumpSound();
     }
 
     const standPlaces = game.getViewStages({ x: this.realX, height: this.height });

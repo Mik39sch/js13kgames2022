@@ -5,6 +5,7 @@ import { randomInt, getTime } from "../common/util";
 import stage from "../model/StageConstant";
 import HeaderModel from "../model/HeaderModel";
 import ItemModel from "../model/ItemModel";
+import { hitSound, hitEnemySound, pickCoinSound, startSound, pickRosarySound } from "../common/sound";
 
 export default class GameController {
   constructor({ player, enemyMoveImages, enemyStopImages, coinImage, rosaryImage }) {
@@ -64,10 +65,12 @@ export default class GameController {
         this.gamemode = "play";
         this.player.initialize();
         this.header.time.startTime = getTime();
+        startSound();
         this._draw();
       }
       if ((this.gamemode === "gameover" || this.gamemode === "clear") && e.code === "Enter") {
         this.gamemode = "title";
+        startSound();
         this._draw();
       }
       this.keyboard = this.keyboard.filter(a => a !== e.code);
@@ -223,6 +226,7 @@ export default class GameController {
       this.clear = true;
       this.clearTIme = 0;
       this.level++;
+      startSound();
       if (this.level > 3) {
         this.stages = [];
         this.enemies = [];
@@ -251,14 +255,7 @@ export default class GameController {
     }
     const itemIdx = this.getItem();
     if (itemIdx >= 0) {
-      const gItem = this.items[itemIdx];
-      if (gItem.type === "rosary" && !this.explainedRosary) {
-        this.explainedRosary = true;
-        this.showExplainRosary = true;
-        this.showExplainRosaryTimer = 0;
-      }
-      gItem.action(this);
-      this.items.splice(itemIdx, 1);
+      this.getItemAction(itemIdx);
     }
 
     this.stages
@@ -345,14 +342,7 @@ export default class GameController {
 
     const itemIdx = this.getItem();
     if (itemIdx >= 0) {
-      const gItem = this.items[itemIdx];
-      if (gItem.type === "rosary" && !this.explainedRosary) {
-        this.explainedRosary = true;
-        this.showExplainRosary = true;
-        this.showExplainRosaryTimer = 0;
-      }
-      gItem.action(this);
-      this.items.splice(itemIdx, 1);
+      this.getItemAction(itemIdx);
     }
 
     this.stages.forEach(stage => stage.draw(this));
@@ -438,6 +428,7 @@ export default class GameController {
 
   _hitAction(enemyIdx) {
     if (this.header.rosary.point > 0) {
+      hitEnemySound();
       const enemy = this.enemies[enemyIdx];
       if (enemy.hitPoint && enemy.hitPoint > 0) {
         this.enemies[enemyIdx].hitPoint--;
@@ -453,6 +444,7 @@ export default class GameController {
 
       this.header.rosary.point--;
     } else {
+      hitSound();
       this.header.lifePoint.point -= 1;
       if (this.header.lifePoint.point <= 0) {
         this.gamemode = "gameover";
@@ -481,6 +473,23 @@ export default class GameController {
         (itemMinX <= playerMaxX && playerMaxX <= itemMaxX && itemMinY <= playerMaxY && playerMaxY <= itemMaxY)
       );
     });
+  }
+
+  getItemAction(itemIdx) {
+    const gItem = this.items[itemIdx];
+    if (gItem.type === "coin") {
+      pickCoinSound();
+    }
+    if (gItem.type === "rosary") {
+      pickRosarySound();
+    }
+    if (gItem.type === "rosary" && !this.explainedRosary) {
+      this.explainedRosary = true;
+      this.showExplainRosary = true;
+      this.showExplainRosaryTimer = 0;
+    }
+    gItem.action(this);
+    this.items.splice(itemIdx, 1);
   }
 
   showCLearText() {
