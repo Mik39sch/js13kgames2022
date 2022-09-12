@@ -123,7 +123,7 @@ export default class GameController {
     this.explainedRosary = false;
     this.showExplainRosary = false;
     this.showExplainRosaryTimer = 0;
-
+    this.stageMaxX = s.STAGE_MAX_X;
     this.initializeStage();
 
     this.stages
