@@ -17,3 +17,11 @@ export const setLoadAllCallback = (elements, callback) => {
 export const getTime = function () {
     return new Date().getTime();
 }
+
+export const isSmartPhone = () => {
+    if (navigator.userAgent.match(/iPhone|Android.+Mobile/)) {
+        return true;
+    } else {
+        return false;
+    }
+}

@@ -1,7 +1,7 @@
 import s from "../common/settings";
 import EnemyModel, { bossPatterns } from "../model/EnemyModel";
 import StageModel from "../model/StageModel";
-import { randomInt, getTime } from "../common/util";
+import { randomInt, getTime, isSmartPhone } from "../common/util";
 import stage from "../model/StageConstant";
 import HeaderModel from "../model/HeaderModel";
 import ItemModel from "../model/ItemModel";
@@ -38,22 +38,29 @@ export default class GameController {
     const btnWidth = 100;
     const appElement = document.querySelector(s.APP_ELEMENT);
     const [w, h] = [s.CANVAS_WIDTH, s.CANVAS_HEIGHT];
-    [appElement.style.width, appElement.style.height] = [`${w + btnWidth * 3}px`, `${h}px`];
+    let appElWidth = w;
+    if (isSmartPhone()) {
+      appElWidth = w + btnWidth * 3;
+    }
+    [appElement.style.width, appElement.style.height] = [`${appElWidth}px`, `${h}px`];
     this.offscreenEl = document.createElement("canvas");
     [this.offscreenEl.width, this.offscreenEl.height] = [w, h];
 
     this.ctx = this.offscreenEl.getContext('2d');
-    this.leftBtn = document.createElement("button");
-    [this.leftBtn.style.width, this.leftBtn.style.height] = [`${btnWidth}px`, `${h}px`];
-    this.leftBtn.innerText = "<<<";
-    this.leftBtn.id = "leftbtn";
-    appElement.appendChild(this.leftBtn);
 
-    this.rightBtn = document.createElement("button");
-    [this.rightBtn.style.width, this.rightBtn.style.height] = [`${btnWidth}px`, `${h}px`];
-    this.rightBtn.innerText = ">>>";
-    this.rightBtn.id = "rightbtn";
-    appElement.appendChild(this.rightBtn);
+    if (isSmartPhone()) {
+      this.leftBtn = document.createElement("button");
+      [this.leftBtn.style.width, this.leftBtn.style.height] = [`${btnWidth}px`, `${h}px`];
+      this.leftBtn.innerText = "<<<";
+      this.leftBtn.id = "leftbtn";
+      appElement.appendChild(this.leftBtn);
+
+      this.rightBtn = document.createElement("button");
+      [this.rightBtn.style.width, this.rightBtn.style.height] = [`${btnWidth}px`, `${h}px`];
+      this.rightBtn.innerText = ">>>";
+      this.rightBtn.id = "rightbtn";
+      appElement.appendChild(this.rightBtn);
+    }
 
     const canvasEl = document.createElement("canvas");
     [canvasEl.style.width, canvasEl.style.height] = [`${w}px`, `${h}px`];
@@ -62,11 +69,13 @@ export default class GameController {
     this.displayCtx = canvasEl.getContext('2d');
     appElement.appendChild(canvasEl);
 
-    this.jumpBtn = document.createElement("button");
-    [this.jumpBtn.style.width, this.jumpBtn.style.height] = [`${btnWidth}px`, `${h}px`];
-    this.jumpBtn.innerText = "JUMP";
-    this.jumpBtn.id = "jumpbtn";
-    appElement.appendChild(this.jumpBtn);
+    if (isSmartPhone()) {
+      this.jumpBtn = document.createElement("button");
+      [this.jumpBtn.style.width, this.jumpBtn.style.height] = [`${btnWidth}px`, `${h}px`];
+      this.jumpBtn.innerText = "JUMP";
+      this.jumpBtn.id = "jumpbtn";
+      appElement.appendChild(this.jumpBtn);
+    }
 
     this.setKeyEvent();
   }
@@ -75,10 +84,15 @@ export default class GameController {
     this.player = player;
   }
 
+
+
   setKeyEvent() {
-    const leftbtn = document.querySelector("#leftbtn");
-    const rightbtn = document.querySelector("#rightbtn");
-    const jumpbtn = document.querySelector("#jumpbtn");
+    let leftbtn, rightbtn, jumpbtn;
+    if (isSmartPhone()) {
+      leftbtn = document.querySelector("#leftbtn");
+      rightbtn = document.querySelector("#rightbtn");
+      jumpbtn = document.querySelector("#jumpbtn");
+    }
 
     const keydown = e => {
       this.keyboard = [...new Set([...this.keyboard, e.code])];
@@ -102,45 +116,47 @@ export default class GameController {
       this.keyboard = this.keyboard.filter(a => a !== e.code);
     }
 
-    leftbtn.addEventListener("mousedown", e => {
-      keydown({ code: "ArrowLeft" });
-    });
-    rightbtn.addEventListener("mousedown", e => {
-      keydown({ code: "ArrowRight" });
-    });
-    jumpbtn.addEventListener("mousedown", e => {
-      keydown({ code: "ArrowUp" });
-    });
+    if (isSmartPhone()) {
+      leftbtn.addEventListener("mousedown", e => {
+        keydown({ code: "ArrowLeft" });
+      });
+      rightbtn.addEventListener("mousedown", e => {
+        keydown({ code: "ArrowRight" });
+      });
+      jumpbtn.addEventListener("mousedown", e => {
+        keydown({ code: "ArrowUp" });
+      });
 
-    leftbtn.addEventListener("mouseup", e => {
-      keyup({ code: "ArrowLeft" });
-    });
-    rightbtn.addEventListener("mouseup", e => {
-      keyup({ code: "ArrowRight" });
-    });
-    jumpbtn.addEventListener("mouseup", e => {
-      keyup({ code: "ArrowUp" });
-    });
+      leftbtn.addEventListener("mouseup", e => {
+        keyup({ code: "ArrowLeft" });
+      });
+      rightbtn.addEventListener("mouseup", e => {
+        keyup({ code: "ArrowRight" });
+      });
+      jumpbtn.addEventListener("mouseup", e => {
+        keyup({ code: "ArrowUp" });
+      });
 
-    leftbtn.addEventListener("touchstart", e => {
-      keydown({ code: "ArrowLeft" });
-    });
-    rightbtn.addEventListener("touchstart", e => {
-      keydown({ code: "ArrowRight" });
-    });
-    jumpbtn.addEventListener("touchstart", e => {
-      keydown({ code: "ArrowUp" });
-    });
+      leftbtn.addEventListener("touchstart", e => {
+        keydown({ code: "ArrowLeft" });
+      });
+      rightbtn.addEventListener("touchstart", e => {
+        keydown({ code: "ArrowRight" });
+      });
+      jumpbtn.addEventListener("touchstart", e => {
+        keydown({ code: "ArrowUp" });
+      });
 
-    leftbtn.addEventListener("touchend", e => {
-      keyup({ code: "ArrowLeft" });
-    });
-    rightbtn.addEventListener("touchend", e => {
-      keyup({ code: "ArrowRight" });
-    });
-    jumpbtn.addEventListener("touchend", e => {
-      keyup({ code: "ArrowUp" });
-    });
+      leftbtn.addEventListener("touchend", e => {
+        keyup({ code: "ArrowLeft" });
+      });
+      rightbtn.addEventListener("touchend", e => {
+        keyup({ code: "ArrowRight" });
+      });
+      jumpbtn.addEventListener("touchend", e => {
+        keyup({ code: "ArrowUp" });
+      });
+    }
 
     document.addEventListener("keydown", keydown);
     document.addEventListener("keyup", keyup);
