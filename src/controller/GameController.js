@@ -44,13 +44,13 @@ export default class GameController {
 
     this.ctx = this.offscreenEl.getContext('2d');
     this.leftBtn = document.createElement("button");
-    [this.leftBtn.style.width, this.leftBtn.style.height] = [`${btnWidth}px`, `30px`];
+    [this.leftBtn.style.width, this.leftBtn.style.height] = [`${btnWidth}px`, `${h}px`];
     this.leftBtn.innerText = "<<<";
     this.leftBtn.id = "leftbtn";
     appElement.appendChild(this.leftBtn);
 
     this.rightBtn = document.createElement("button");
-    [this.rightBtn.style.width, this.rightBtn.style.height] = [`${btnWidth}px`, `30px`];
+    [this.rightBtn.style.width, this.rightBtn.style.height] = [`${btnWidth}px`, `${h}px`];
     this.rightBtn.innerText = ">>>";
     this.rightBtn.id = "rightbtn";
     appElement.appendChild(this.rightBtn);
@@ -63,7 +63,7 @@ export default class GameController {
     appElement.appendChild(canvasEl);
 
     this.jumpBtn = document.createElement("button");
-    [this.jumpBtn.style.width, this.jumpBtn.style.height] = [`${btnWidth}px`, `30px`];
+    [this.jumpBtn.style.width, this.jumpBtn.style.height] = [`${btnWidth}px`, `${h}px`];
     this.jumpBtn.innerText = "JUMP";
     this.jumpBtn.id = "jumpbtn";
     appElement.appendChild(this.jumpBtn);
