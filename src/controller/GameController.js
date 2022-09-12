@@ -466,7 +466,7 @@ export default class GameController {
         this.enemies.splice(enemyIdx, 1);
       }
 
-      // this.header.rosary.point--;
+      this.header.rosary.point--;
     } else {
       hitSound();
       this.header.lifePoint.point -= 1;
