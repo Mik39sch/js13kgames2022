@@ -1,5 +1,5 @@
 import s from "../common/settings";
-import EnemyModel from "../model/EnemyModel";
+import EnemyModel, { bossPatterns } from "../model/EnemyModel";
 import StageModel from "../model/StageModel";
 import { randomInt, getTime } from "../common/util";
 import stage from "../model/StageConstant";
@@ -33,6 +33,7 @@ export default class GameController {
     this.stageMaxX = s.STAGE_MAX_X;
 
     this.gamemode = "title"; // title, play, gameover
+    this.header = new HeaderModel({ image: this.player.stopImage["normal"], rosaryImage: this.rosaryImage, coinImage: this.coinImage });
 
     const appElement = document.querySelector(s.APP_ELEMENT);
     const [w, h] = [s.CANVAS_WIDTH, s.CANVAS_HEIGHT];
@@ -65,6 +66,9 @@ export default class GameController {
         this.gamemode = "play";
         this.player.initialize();
         this.header.time.startTime = getTime();
+        this.header.rosary.point = 0;
+        this.header.coin.point = 0;
+        this.header.lifePoint.point = this.header.lifePoint.maxPoint;
         startSound();
         this._draw();
       }
@@ -120,7 +124,6 @@ export default class GameController {
     this.showExplainRosary = false;
     this.showExplainRosaryTimer = 0;
 
-    this.header = new HeaderModel({ image: this.player.stopImage["normal"], rosaryImage: this.rosaryImage, coinImage: this.coinImage });
     this.initializeStage();
 
     this.stages
@@ -133,9 +136,11 @@ export default class GameController {
     const title = "Lost Treasures 2";
 
     let text = "One day... There was a treasures hunter.\n";
-    text += "He heard a rumor that there was some treasures in the cave.\n";
-    text += "So he went to the cave but... He was lost!\n";
-    text += "You need to navigate to the exit for him.\n";
+    text += "He heard a rumor that there was some treasures in the mountain.\n";
+    text += "There is a king zombie in the mountain. The king zombie attacked many villages. \n";
+    text += "So he went to the mountain but... He was lost!\n";
+    text += "You need to navigate to the king zombie for him.\n";
+    text += "You should careful child zombies on the way to the king zombie.\n";
     text += "\n";
     text += "----------------------------------------------------------\n";
     text += "ArrowKeys(Left/Right): move\n";
@@ -287,10 +292,11 @@ export default class GameController {
 
     if (this.enemies.length === 0) {
       this.enemies = [new EnemyModel({
-        hitPoint: 5,
+        hitPoint: 6,
         size: 128,
-        pattern: { speed: 1, jump: 20, walkLength: 800 },
-        startPosition: 100,
+        pattern: { speed: 5, jump: 0, walkLength: 900 },
+        startPosition: 0,
+        x: 100,
         moveImages: {
           normal: [
             this.enemyStopImages[0],
@@ -305,10 +311,21 @@ export default class GameController {
 
     let itemMax = 5;
     let createItemTime = 101;
-    if (this.enemies[0].hitPoint <= 2) {
+    let recreateBossTime = 101;
+    if (this.enemies[0].hitPoint <= 3) {
       itemMax = 3;
       createItemTime = 151;
+      recreateBossTime = 71;
     }
+
+    if (this.bossTimer % recreateBossTime === 0) {
+      this.enemies[0].pattern = bossPatterns[randomInt({ max: bossPatterns.length, min: 0 })];
+      if (this.enemies[0].hitPoint <= 3) {
+        this.enemies[0].pattern.speed = 15;
+        this.enemies[0].pattern.jump = 10;
+      }
+    }
+
 
     if (this.items.length <= itemMax && this.bossTimer % createItemTime === 0) {
       const stageIdx = randomInt({ max: this.stages.length, min: 0 });
@@ -371,9 +388,8 @@ export default class GameController {
   _drawGameover() {
     const title = "GAME OVER... YOU ARE DEAD";
 
-    let text = "He could kill zombie king and he could find many treasures.\n";
-    text += "His treasure hunt will continue.\n";
-    text += "\n";
+    let text = "He was killed zombies.\n";
+    text += "He will live in the mountain as a zombie.\n";
     text += "\n";
     text += "Press Enter key to go back Title.";
 
@@ -383,8 +399,16 @@ export default class GameController {
   _drawClear() {
     const title = "Game Clear!!!";
 
-    let text = "He could kill zombie king and he could find many treasures.\n";
+    let text = "He could kill the king zombie and he could find many treasures.\n";
     text += "His treasure hunt will continue.\n";
+    text += "\n";
+
+    text += "Your Record is ...\n";
+    text += "----------------------------------------------------------\n";
+    const time = Math.floor(getTime() - this.header.time.startTime) / 1000;
+    text += `Time: ${time}s \n`;
+    text += `Coin: ${this.header.coin.point} \n`;
+    text += "----------------------------------------------------------\n";
     text += "\n";
 
     text += "\n";
@@ -435,14 +459,14 @@ export default class GameController {
         this.enemies[enemyIdx].hitting = true;
         this.enemies[enemyIdx].hittingTimer = 100;
 
-        if (enemy.hitPoint <= 2) {
+        if (enemy.hitPoint <= 3) {
           this.enemies[enemyIdx].pattern.speed = 3;
         }
       } else {
         this.enemies.splice(enemyIdx, 1);
       }
 
-      this.header.rosary.point--;
+      // this.header.rosary.point--;
     } else {
       hitSound();
       this.header.lifePoint.point -= 1;
@@ -527,14 +551,14 @@ export default class GameController {
       this.ctx.fillStyle = "white";
       this.ctx.textBaseline = 'center';
       this.ctx.textAlign = 'center';
-      this.ctx.fillText(title, s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 3);
+      this.ctx.fillText(title, s.CANVAS_WIDTH / 2, s.CANVAS_HEIGHT / 4);
     }
 
     if (summary) {
       const fontSize = 20;
       const lineHeight = 1.2;
       const x = 20;
-      const y = s.CANVAS_HEIGHT / 3 + 50;
+      const y = s.CANVAS_HEIGHT / 4 + 50;
       this.ctx.beginPath();
       this.ctx.textBaseline = 'left';
       this.ctx.textAlign = 'left';

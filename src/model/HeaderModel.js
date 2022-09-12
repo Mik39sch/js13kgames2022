@@ -6,7 +6,7 @@ export default class HeaderModel extends BaseModel {
   constructor(options) {
     super(options);
 
-    const maxPoint = 4;
+    const maxPoint = 3;
     this.lifePoint = {
       x: 0, y: 0, img: options.image, point: maxPoint, maxPoint: maxPoint
     };
@@ -51,7 +51,7 @@ export default class HeaderModel extends BaseModel {
     game.ctx.textBaseline = 'top';
     game.ctx.textAlign = 'right';
     game.ctx.fillText(
-      Math.floor(getTime() - this.time.startTime / 1000) / 1000, this.time.x, this.time.y);
+      Math.floor(getTime() - this.time.startTime) / 1000, this.time.x, this.time.y);
 
     game.ctx.drawImage(
       this.rosary.img,

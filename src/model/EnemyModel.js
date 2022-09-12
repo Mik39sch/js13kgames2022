@@ -10,6 +10,13 @@ const enemyPatterns = [
   { speed: 3, jump: 100, walkLength: 250 }
 ]
 
+export const bossPatterns = [
+  { speed: 2, jump: 20, walkLength: 900 },
+  { speed: 3, jump: 10, walkLength: 900 },
+  { speed: 5, jump: 100, walkLength: 900 },
+  { speed: 15, jump: 0, walkLength: 900 },
+]
+
 export default class EnemyModel extends BaseModel {
   constructor(options) {
     super(options);
@@ -25,7 +32,7 @@ export default class EnemyModel extends BaseModel {
       this.pattern = options.pattern;
     }
 
-    this.x = 0;
+    this.x = options.x || 0;
     this.yv = 10;
     this.startPosition = options.startPosition;
     this.turn = false;
@@ -107,7 +114,7 @@ export default class EnemyModel extends BaseModel {
       this.x -= this.pattern.speed;
     }
 
-    if (!this.jumping && this.pattern.jump > 0 && this.x % this.pattern.jump === 0) {
+    if (!this.downing && !this.jumping && this.pattern.jump > 0 && this.x % this.pattern.jump === 0) {
       this.jumping = true;
       this.standingPos = this.y;
       this.jumpTop = undefined;
@@ -115,7 +122,21 @@ export default class EnemyModel extends BaseModel {
     }
 
     const standPlaces = game.getViewStages({ x: this.x + this.startPosition, height: this.height });
+    const enemyPosX = this.x + this.startPosition;
+    if (
+      this.currentStage &&
+      (this.currentStage.x > enemyPosX || this.currentStage.x + this.currentStage.width < enemyPosX) &&
+      !this.downing && !this.jumping
+    ) {
+      this.downing = true;
+      this.standingPos = this.y;
+      this.downingTimer = 0;
+    }
+
+
+
     if (this.jumping) this._jump(standPlaces);
+    if (this.downing) this._down(standPlaces);
     this.timer++;
 
     if (this.hitting) {
@@ -145,6 +166,25 @@ export default class EnemyModel extends BaseModel {
       this.y >= stage.y - s.GROUND_START_Y
     );
     if (returnJump && stage) {
+      this._reset(stage);
+    }
+  }
+
+  _down(standPlaces) {
+    const prevY = this.y;
+    this.y = 0.5 * s.GRAVITY * this.downingTimer * this.downingTimer + this.standingPos;
+    this.downingTimer++;
+
+    if (this.y > 1) {
+      this._reset();
+    }
+
+    const stage = standPlaces.find(stage =>
+      prevY <= stage.y - s.GROUND_START_Y &&
+      this.y >= stage.y - s.GROUND_START_Y
+    );
+
+    if (stage) {
       this._reset(stage);
     }
   }
